@@ -1,8 +1,12 @@
 name = "rald-auth"
-main = "src/worker.ts"
+main = "dist/worker.mjs"
 compatibility_date = "2025-05-01"
 compatibility_flags = ["nodejs_compat"]
-account_id = "${{ env.CLOUDFLARE_ACCOUNT_ID }}"
+
+[env.production]
+routes = [
+  { pattern = "auth.ostloop.name.ng/*", zone_name = "ostloop.name.ng" }
+]
 
 # Routes / custom domains can be added later, e.g.:
 # routes = [
