@@ -1,0 +1,562 @@
+# LOVABLE MASTER FRONTEND EXECUTION PROMPT — RALD OAUTH CONSENT + AUTH EXPERIENCE
+
+## PROJECT
+RALD — Root Authentication & Login Directory
+
+Production Backend:
+https://auth.ostloop.name.ng
+
+Supabase Backend:
+https://onxdcikfttdmnhofsuwo.supabase.co
+
+GitHub Repository:
+https://github.com/Ostinato-Loop/rald.git
+
+---
+
+# MISSION
+
+You are building the COMPLETE frontend authentication and OAuth consent experience for RALD.
+
+This is a production-grade identity platform similar to:
+- Google Accounts
+- Auth0 Universal Login
+- Stripe Connect OAuth
+- Clerk Authentication
+
+The backend already exists.
+
+DO NOT:
+- modify backend logic
+- modify Cloudflare Workers
+- modify Supabase schema
+- modify deployment systems
+- modify CI/CD
+
+ONLY build frontend UI/UX and frontend API integrations.
+
+---
+
+# CORE GOAL
+
+Build a polished Google-style OAuth and authentication experience with:
+
+- phone-number-first identity
+- OTP verification
+- optional password fallback
+- Google-style OAuth approval screens
+- account switcher
+- permission approval UI
+- animated state-driven authentication box
+- responsive enterprise-grade UX
+
+The experience must feel:
+- secure
+- premium
+- trustworthy
+- modern
+- enterprise-ready
+
+---
+
+# AUTHENTICATION SYSTEM
+
+## MAIN AUTH PAGE
+
+Create:
+- /login
+- /signup
+- /auth
+- /continue
+
+Use centered authentication card design.
+
+Layout:
+- RALD logo placeholder at top
+- title text
+- phone number input
+- OTP workflow
+- optional password fallback
+- Google-style minimal design
+
+---
+
+# PHONE LOGIN FLOW
+
+Default identity method:
+PHONE NUMBER ONLY
+
+Support:
+- +234 Nigeria formatting
+- 080
+- 081
+- 070
+- 090
+- 091
+
+Flow:
+1. Enter phone number
+2. Send OTP
+3. Enter OTP
+4. Verify
+5. Redirect into dashboard
+
+---
+
+# OPTIONAL PASSWORD FLOW
+
+Allow fallback login:
+- phone + password
+
+Include:
+- forgot password
+- reset password UI
+- password visibility toggle
+
+---
+
+# ANIMATED AUTH BOX SYSTEM
+
+This is REQUIRED.
+
+The authentication container itself must animate based on state.
+
+## DEFAULT STATE
+- soft neutral border
+- subtle glow
+- minimal clean appearance
+
+## LOADING STATE
+When API request is active:
+- border glows yellow
+- subtle pulse animation
+- slight ambient lighting effect
+
+## ERROR STATE
+When credentials fail:
+- border glows red
+- soft shake animation
+- inline error text appears
+- maintain smooth UX
+
+## SUCCESS STATE
+When authentication succeeds:
+- border glows green
+- success pulse animation
+- smooth transition to next screen
+
+Animations must feel:
+- premium
+- smooth
+- Google-quality
+- not exaggerated
+
+---
+
+# OAUTH CONSENT SYSTEM
+
+Create complete Google-style OAuth approval flow.
+
+Routes:
+- /oauth/authorize
+- /oauth/consent
+- /oauth/approve
+- /oauth/deny
+
+Frontend only.
+
+---
+
+# OAUTH ENTRY SCREEN
+
+Show:
+- application logo
+- RALD logo
+- “Sign in to continue”
+- requesting application name
+- verified badge
+- secure connection indicator
+
+Example:
+“Loop Workspace wants access to your RALD account”
+
+Buttons:
+- Continue
+- Cancel
+
+---
+
+# ACCOUNT SWITCHER
+
+Build Google-style account chooser.
+
+If multiple accounts exist:
+- show account cards
+- avatar
+- phone number
+- active session badge
+
+Actions:
+- Continue as user
+- Use another account
+- Remove account
+
+---
+
+# CONSENT SCREEN
+
+This is the core OAuth approval screen.
+
+Display:
+- application name
+- developer/company name
+- verified developer badge
+- permissions requested
+- trust indicators
+
+---
+
+# PERMISSION CARDS
+
+Each requested permission appears inside modern permission cards.
+
+Each card includes:
+- icon
+- permission title
+- short explanation
+
+Examples:
+- View profile information
+- Access verified phone number
+- Maintain secure login session
+- Access wallet information
+
+---
+
+# ADVANCED DETAILS SECTION
+
+Expandable section containing:
+- OAuth scopes
+- redirect URI
+- client ID
+- environment
+- expiration time
+
+Developer-style monospace formatting.
+
+---
+
+# APPROVAL ACTIONS
+
+Bottom actions:
+- Allow Access
+- Cancel
+
+Primary action must feel highly trustworthy and secure.
+
+---
+
+# SUCCESS SCREEN
+
+After approval:
+- green success animation
+- “Successfully connected”
+- automatic redirect countdown
+- smooth fade transition
+
+---
+
+# DENIED SCREEN
+
+If denied:
+- calm neutral UI
+- retry option
+- explanation text
+
+Avoid aggressive red warning pages.
+
+---
+
+# DASHBOARD INTEGRATION
+
+After successful login redirect user into RALD dashboard UI.
+
+Dashboard must feel like:
+- Stripe Dashboard
+- Auth0 Console
+- Vercel Dashboard
+
+---
+
+# DASHBOARD STRUCTURE
+
+Sidebar:
+- Overview
+- Profile
+- Security
+- Sessions
+- API Keys
+- Developers
+- Wallet
+- Settings
+- Logout
+
+Topbar:
+- user avatar
+- notifications
+- workspace switcher
+- theme toggle
+
+---
+
+# DEVELOPER PORTAL UI
+
+Create Auth0-style developer platform.
+
+Pages:
+- Applications
+- API Keys
+- OAuth Clients
+- Webhooks
+- Logs
+- Usage Analytics
+- SDK Downloads
+- Billing UI
+
+Use:
+- charts
+- API cards
+- code blocks
+- key masking
+- usage graphs
+
+Style:
+- Stripe + Auth0 hybrid
+
+---
+
+# API KEYS PAGE
+
+Show:
+- masked API keys
+- scopes
+- last used
+- revoke buttons
+- rotate key buttons
+
+Include:
+- monospace formatting
+- developer-style tables
+
+---
+
+# WEBHOOKS PAGE
+
+Display:
+- webhook endpoints
+- event subscriptions
+- delivery status
+- retry/replay buttons
+
+Use real-time style log panels.
+
+---
+
+# LOGS PAGE
+
+Build developer observability UI.
+
+Show:
+- request logs
+- status codes
+- latency
+- timestamps
+- endpoint hits
+
+Filters:
+- method
+- endpoint
+- status code
+- date range
+
+Use Vercel/Stripe-style log stream UI.
+
+---
+
+# USAGE ANALYTICS PAGE
+
+Show:
+- API usage charts
+- request volume
+- error rate
+- latency metrics
+- billing-style usage meters
+
+---
+
+# SDK PAGE
+
+Display:
+- TypeScript SDK
+- Python SDK
+- Go SDK
+- Dart SDK
+
+Include:
+- install commands
+- copy buttons
+- code snippets
+- quickstart cards
+
+---
+
+# DESIGN SYSTEM
+
+## VISUAL STYLE
+
+Must feel like:
+- Google Accounts
+- Stripe
+- Clerk
+- Auth0
+- Vercel
+
+Minimal but premium.
+
+---
+
+# COMPONENT STYLE
+
+Use:
+- glassmorphism subtly
+- soft shadows
+- rounded cards
+- clean typography
+- enterprise spacing
+- premium transitions
+
+---
+
+# DARK/LIGHT MODE
+
+Support:
+- dark mode
+- light mode
+
+Include animated theme switching.
+
+---
+
+# RESPONSIVENESS
+
+Must work perfectly on:
+- mobile
+- tablet
+- desktop
+
+Mobile-first priority.
+
+---
+
+# MOBILE UX
+
+On mobile:
+- sidebar collapses into bottom nav
+- auth screens fully centered
+- animations remain smooth
+- touch interactions optimized
+
+---
+
+# PERFORMANCE REQUIREMENTS
+
+Optimize for:
+- low bandwidth
+- fast mobile rendering
+- Nigeria-first experience
+- minimal layout shifts
+
+Use:
+- skeleton loaders
+- lazy loading
+- smooth transitions
+
+---
+
+# FRONTEND API INTEGRATION
+
+Use existing backend APIs only.
+
+Base API:
+https://auth.ostloop.name.ng
+
+Potential endpoints:
+- /login/send-otp
+- /login/verify-otp
+- /login/password
+- /session
+- /oauth/authorize
+- /oauth/consent
+- /developers/*
+- /wallet/*
+- /profile
+- /sessions
+
+DO NOT invent backend systems.
+
+---
+
+# SECURITY UX FEATURES
+
+Display:
+- secure connection badges
+- verified app indicators
+- “Powered by RALD”
+- “Your password is never shared”
+
+Build user trust visually.
+
+---
+
+# STRICT RULES
+
+You MUST NOT:
+- modify backend logic
+- modify Cloudflare Workers
+- modify deployment systems
+- modify Supabase schema
+- alter CI/CD
+- expose secrets
+
+You MUST:
+- focus only on frontend
+- build production-grade UI
+- maintain API compatibility
+- preserve existing auth flows
+- ensure responsive UX
+
+---
+
+# FINAL GOAL
+
+Deliver a complete production-ready frontend identity experience that feels like:
+
+Google Accounts
++
+Auth0
++
+Stripe
++
+Clerk
++
+Vercel
+
+for a Nigeria-first identity infrastructure platform.
+
+Everything should feel:
+- premium
+- scalable
+- secure
+- modern
+- developer-grade
+- mobile-first

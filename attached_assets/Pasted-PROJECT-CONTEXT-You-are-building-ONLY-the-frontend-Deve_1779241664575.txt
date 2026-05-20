@@ -1,0 +1,364 @@
+PROJECT CONTEXT
+
+You are building ONLY the frontend Developer Portal UI for RALD (Root Authentication & Login Directory).
+
+This is a production-grade API platform dashboard for developers integrating with RALD.
+
+Do NOT modify backend, Cloudflare, Supabase schema, or CI/CD.
+
+Backend already exists at:
+RALD Production API￼
+
+Supabase:
+https://onxdcikfttdmnhofsuwo.supabase.co
+
+⸻
+
+🎯 CORE MISSION
+
+Build a developer-grade API platform dashboard similar to:
+	•	Auth0 Dashboard (identity + API management)
+	•	Stripe Dashboard (API keys + usage + billing)
+	•	Clerk Dashboard (auth product UX)
+	•	Vercel Dashboard (developer clarity)
+
+This is NOT a normal admin page.
+
+This is a full developer platform UI product.
+
+⸻
+
+🧠 GLOBAL LAYOUT
+
+1. LEFT SIDEBAR (Developer Navigation)
+
+Include:
+	•	Overview
+	•	Applications
+	•	API Keys
+	•	OAuth Clients
+	•	Webhooks
+	•	Logs
+	•	Usage & Analytics
+	•	SDKs
+	•	Billing (UI only)
+	•	Settings
+
+Sidebar must:
+	•	collapsible
+	•	icon-based
+	•	highlight active route
+	•	feel like Stripe / Auth0
+
+⸻
+
+2. TOP BAR
+
+Include:
+	•	Workspace selector (optional UI only)
+	•	Search bar (API search)
+	•	Environment selector:
+	•	Production
+	•	Staging (UI only toggle)
+	•	User avatar menu
+
+⸻
+
+3. MAIN CONTENT AREA
+
+Dynamic page system with high-density developer UI
+
+⸻
+
+📄 PAGES SPECIFICATION
+
+⸻
+
+1. DEVELOPER OVERVIEW DASHBOARD
+
+Show:
+	•	API request volume (chart UI)
+	•	Active API keys count
+	•	Error rate graph
+	•	Latency chart
+	•	Webhook delivery success rate
+	•	Recent API events stream
+
+UI style:
+	•	Stripe-style metric cards
+	•	real-time feed panel
+	•	clean graphs
+
+⸻
+
+2. APPLICATIONS PAGE
+
+This is the “Auth0 Applications” equivalent.
+
+Show:
+	•	list of registered apps
+	•	app name + ID
+	•	API key association
+	•	redirect URLs
+	•	environment tags
+
+Actions (UI only):
+	•	Create Application
+	•	Edit Application
+	•	Delete Application
+
+Each app card includes:
+	•	Client ID
+	•	Client Secret (masked)
+	•	Allowed scopes
+	•	callback URLs
+
+⸻
+
+3. API KEYS PAGE
+
+Core security interface.
+
+Show:
+	•	API key list (masked)
+	•	key name
+	•	scopes
+	•	created date
+	•	last used
+	•	status (active/revoked)
+
+Actions:
+	•	Create new key
+	•	Rotate key
+	•	Revoke key
+
+Include:
+	•	scope selector UI (checkbox-based permissions)
+	•	rate limit tier selector
+
+⸻
+
+4. OAUTH CLIENTS PAGE
+
+Show:
+	•	OAuth client registry
+	•	client ID
+	•	redirect URIs
+	•	grant types
+	•	scopes
+
+Actions:
+	•	Create OAuth client
+	•	Edit client
+	•	revoke client
+
+UI should mirror Auth0 style client management.
+
+⸻
+
+5. WEBHOOKS PAGE
+
+Show:
+	•	webhook endpoints list
+	•	event subscriptions
+	•	delivery status
+
+Each webhook includes:
+	•	URL
+	•	secret (masked)
+	•	subscribed events
+	•	success/failure rate
+
+Actions:
+	•	Add webhook endpoint
+	•	Test webhook
+	•	Replay failed events (UI only trigger)
+
+⸻
+
+6. LOGS PAGE (REAL-TIME API OBSERVABILITY)
+
+This is critical.
+
+Show:
+	•	streaming API logs
+	•	request method (GET/POST)
+	•	endpoint hit
+	•	response status
+	•	latency
+	•	error traces
+
+Filters:
+	•	date range
+	•	endpoint
+	•	status code
+	•	API key
+
+UI style:
+	•	Vercel logs + Stripe event logs hybrid
+
+⸻
+
+7. USAGE & ANALYTICS PAGE
+
+Show:
+	•	API usage over time (graph)
+	•	per-app usage breakdown
+	•	per-key usage breakdown
+	•	error rate analytics
+	•	latency heatmap
+
+Include:
+	•	billing-style usage meters
+	•	quota tracking UI
+
+⸻
+
+8. SDKs PAGE
+
+This is a developer onboarding hub
+
+Show:
+	•	SDK downloads:
+	•	TypeScript
+	•	Python
+	•	Go
+	•	Dart
+
+Include:
+	•	copy installation commands
+	•	example API usage snippets
+	•	quickstart guides UI cards
+
+⸻
+
+9. BILLING PAGE (UI ONLY)
+
+DO NOT implement payment logic.
+
+Show:
+	•	current plan
+	•	usage-based billing UI
+	•	API request billing estimate
+	•	invoice history UI
+
+⸻
+
+10. SETTINGS PAGE
+
+Include:
+	•	workspace settings
+	•	security settings
+	•	API access control
+	•	environment variables UI (masked only)
+	•	team members UI (future-ready)
+
+⸻
+
+🎨 DESIGN SYSTEM
+
+VISUAL STYLE
+
+Must feel like:
+	•	Auth0 (identity infrastructure)
+	•	Stripe (API monetization clarity)
+	•	Vercel (developer simplicity)
+	•	AWS console (depth but clean UX)
+
+⸻
+
+COMPONENT STYLE
+	•	dark + light mode support
+	•	glassy panels + subtle borders
+	•	monospace font for API keys
+	•	code-block styling for SDK snippets
+	•	soft gradients for metrics
+
+⸻
+
+LOADING STATES
+	•	skeleton loaders for tables
+	•	shimmer charts for analytics
+	•	smooth transitions for logs
+
+⸻
+
+ERROR STATES
+	•	inline API error banners
+	•	toast notifications
+	•	retry buttons for failed requests
+
+⸻
+
+RESPONSIVENESS
+
+Must work on:
+	•	mobile (simplified nav)
+	•	tablet (collapsed sidebar)
+	•	desktop (full dashboard)
+
+⸻
+
+🔌 FRONTEND API INTEGRATION ONLY
+
+Connect to existing backend:
+
+RALD Production API￼
+
+Expected endpoints:
+	•	/developers/apps
+	•	/developers/api-keys
+	•	/developers/webhooks
+	•	/developers/logs
+	•	/developers/usage
+	•	/developers/oauth
+	•	/developers/billing
+
+DO NOT create backend logic.
+
+⸻
+
+⚠️ STRICT RULES
+
+You MUST NOT:
+	•	modify backend systems
+	•	change Cloudflare Workers
+	•	alter Supabase schema
+	•	implement server logic
+	•	assume missing APIs
+
+You MUST:
+	•	build frontend only
+	•	fully simulate API-driven UI
+	•	ensure production-level UX polish
+	•	keep everything modular and scalable
+
+⸻
+
+🧠 UX GOAL
+
+This should feel like:
+	•	Auth0 developer platform
+	•	Stripe API dashboard
+	•	Vercel analytics panel
+
+But adapted for:
+	•	Nigeria-first identity infrastructure
+	•	low-bandwidth optimization
+	•	fast API response environments
+
+⸻
+
+🎯 FINAL OUTPUT
+
+A complete RALD Developer Portal UI with:
+	•	Applications management
+	•	API keys system
+	•	OAuth clients
+	•	Webhooks engine UI
+	•	Real-time logs
+	•	Usage analytics
+	•	SDK download center
+	•	Billing UI (mocked)
+
+Fully frontend-only, API-connected, production-grade UI system.

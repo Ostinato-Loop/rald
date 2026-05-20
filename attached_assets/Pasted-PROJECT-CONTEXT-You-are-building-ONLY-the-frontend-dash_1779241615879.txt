@@ -1,0 +1,276 @@
+PROJECT CONTEXT
+
+You are building ONLY the frontend dashboard UI for RALD (Root Authentication & Login Directory).
+
+Do NOT modify backend, CI/CD, Cloudflare, Supabase schema, or deployment.
+
+Backend already exists at:
+RALD Production API￼
+
+Database:
+https://onxdcikfttdmnhofsuwo.supabase.co
+
+⸻
+
+🎯 CORE MISSION
+
+Build a modern enterprise-grade dashboard UI for authenticated users in RALD.
+
+This dashboard is the user’s central control panel for:
+	•	identity
+	•	sessions
+	•	security
+	•	API keys (view only or limited actions)
+	•	wallet summary (UI only)
+	•	developer tools access
+	•	account settings
+
+⸻
+
+🧠 UI STYLE DIRECTION
+
+Design must feel like:
+	•	Stripe Dashboard (clean financial UI)
+	•	Clerk Dashboard (auth-first simplicity)
+	•	Vercel Dashboard (developer-focused clarity)
+	•	Google Account Panel (identity-centric)
+
+⸻
+
+🧩 DASHBOARD STRUCTURE
+
+1. MAIN LAYOUT
+
+Create a 3-part layout:
+
+LEFT SIDEBAR (Navigation)
+	•	Overview
+	•	Profile
+	•	Security
+	•	Sessions
+	•	API Keys
+	•	Developers
+	•	Wallet
+	•	Settings
+	•	Logout
+
+Sidebar must:
+	•	be collapsible
+	•	icon + label style
+	•	highlight active route
+
+⸻
+
+TOP BAR
+	•	RALD logo (placeholder)
+	•	search bar (optional)
+	•	notification icon
+	•	user avatar dropdown
+
+⸻
+
+MAIN CONTENT AREA
+
+Dynamic page rendering based on route selection
+
+⸻
+
+📄 DASHBOARD PAGES
+
+1. OVERVIEW PAGE
+
+Show:
+	•	User identity summary card
+	•	Active sessions count
+	•	Security status indicator
+	•	API usage summary (read-only)
+	•	Wallet balance preview (UI only)
+	•	Recent activity feed
+
+UI style:
+	•	card-based layout
+	•	soft shadows
+	•	clean spacing
+	•	responsive grid
+
+⸻
+
+2. PROFILE PAGE
+
+Show:
+	•	phone number (primary identity)
+	•	optional email (if exists)
+	•	account status
+	•	linked devices
+	•	edit profile UI (frontend only)
+
+⸻
+
+3. SECURITY PAGE
+
+Include:
+	•	login history list
+	•	device tracking UI
+	•	session revoke buttons (frontend wired only)
+	•	password change UI (if enabled)
+	•	OTP authentication status
+	•	MFA status placeholder
+
+⸻
+
+4. SESSIONS PAGE
+
+Show:
+	•	list of active sessions
+	•	device info
+	•	location (if available from API)
+	•	last active time
+	•	“Revoke session” button (UI only trigger)
+
+⸻
+
+5. API KEYS PAGE (DEVELOPER STYLE)
+
+Display:
+	•	list of API keys (masked)
+	•	create key button (UI only)
+	•	revoke key button
+	•	usage stats (read-only UI)
+	•	key scopes visualization
+
+⸻
+
+6. WALLET PAGE (UI ONLY)
+
+DO NOT implement real financial logic.
+
+Show:
+	•	balance card (NGN format)
+	•	transaction history UI
+	•	escrow status UI
+	•	pending balance UI
+	•	“send / receive” buttons (UI only placeholders)
+
+⸻
+
+7. DEVELOPERS PAGE
+
+Developer portal UI:
+	•	API documentation section
+	•	webhook logs UI
+	•	usage charts (mock or API-driven)
+	•	SDK download buttons (UI only)
+
+⸻
+
+8. SETTINGS PAGE
+
+Include:
+	•	account preferences
+	•	notification settings
+	•	security preferences
+	•	logout confirmation modal
+
+⸻
+
+🎨 CRITICAL UI REQUIREMENTS
+
+SYSTEM DESIGN STYLE
+	•	clean SaaS dashboard
+	•	dark + light mode support
+	•	smooth transitions
+	•	soft shadows
+	•	modern rounded cards
+
+⸻
+
+LOADING SYSTEM
+
+Use consistent loading states:
+	•	skeleton loaders for cards
+	•	spinner for API calls
+	•	smooth fade transitions
+
+⸻
+
+ERROR STATES
+	•	inline error messages
+	•	toast notifications
+	•	non-blocking UI errors where possible
+
+⸻
+
+RESPONSIVENESS
+
+Must work perfectly on:
+	•	mobile (priority)
+	•	tablet
+	•	desktop
+
+Sidebar collapses into bottom nav on mobile.
+
+⸻
+
+🔌 API INTEGRATION (FRONTEND ONLY)
+
+Use existing backend:
+
+RALD Production API￼
+
+Expected endpoints:
+	•	/session
+	•	/user
+	•	/sessions
+	•	/api-keys
+	•	/wallet
+	•	/activity
+
+DO NOT create or modify backend logic.
+
+⸻
+
+⚠️ STRICT RULES
+
+You MUST NOT:
+	•	modify backend
+	•	change Cloudflare setup
+	•	change Supabase schema
+	•	implement server logic
+	•	break auth flow
+
+You MUST:
+	•	build UI only
+	•	consume existing APIs
+	•	handle frontend state properly
+	•	ensure clean UX flows
+	•	maintain production-ready design quality
+
+⸻
+
+🧠 UX GOAL
+
+This dashboard should feel like:
+	•	Stripe-grade financial dashboard
+	•	Google account control center
+	•	Auth0 security panel
+	•	Clerk developer dashboard
+
+But adapted for:
+	•	Nigeria-first phone identity system
+	•	low bandwidth optimization
+	•	fast session switching
+
+⸻
+
+🎯 FINAL OUTPUT
+
+A complete RALD dashboard frontend with:
+	•	full navigation system
+	•	identity + security pages
+	•	sessions management UI
+	•	API keys dashboard UI
+	•	wallet UI (visual only)
+	•	developer console UI
+	•	settings panel
+
+All connected to existing backend APIs, with no backend changes.

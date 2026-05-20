@@ -1,0 +1,166 @@
+You are building ONLY the frontend UI for RALD (Root Authentication & Login Directory).
+
+Backend, CI/CD, Cloudflare Workers, Supabase, and deployment pipelines already exist and must NOT be modified.
+
+You are ONLY responsible for UI/UX and frontend logic.
+
+Primary backend APIs already exist at:
+RALD Production API￼
+
+Supabase backend:
+https://onxdcikfttdmnhofsuwo.supabase.co
+
+⸻
+
+🎯 CORE MISSION
+
+Build a Google-level authentication experience UI for RALD with:
+	•	Phone number login (primary method)
+	•	OTP verification flow
+	•	Optional password login fallback
+	•	Clean, minimal, modern UI (Google/Auth0 style)
+	•	Mobile-first design
+	•	Fast UX transitions
+	•	No backend logic changes
+
+⸻
+
+🧠 AUTH FLOW REQUIREMENTS
+
+1. Entry Screen (Google-style login page)
+
+Must include:
+	•	Centered auth card UI
+	•	RALD logo placeholder (leave space for logo insertion)
+	•	“Sign in” / “Create account” toggle
+	•	Phone number input (default)
+	•	Optional password input toggle
+	•	Country code selector (default +234 Nigeria)
+
+⸻
+
+2. OTP FLOW
+
+When phone login is used:
+	•	Step 1: Enter phone number
+	•	Step 2: Send OTP
+	•	Step 3: Enter OTP code
+	•	Step 4: Verify
+
+Include:
+	•	resend OTP timer
+	•	loading states
+	•	error states
+
+⸻
+
+3. PASSWORD LOGIN (OPTIONAL FALLBACK)
+
+If user selects password mode:
+	•	phone number + password fields
+	•	forgot password link
+	•	same visual validation system
+
+⸻
+
+🎨 CRITICAL UI FEATURE — “STATE GLOW INPUT BOX”
+
+Create a single auth input container box with animated state feedback.
+
+Box behavior:
+
+🟡 LOADING STATE
+	•	border glows YELLOW
+	•	subtle pulsing animation
+	•	indicates request in progress
+
+🔴 ERROR STATE
+	•	border glows RED
+	•	shake animation (light shake only)
+	•	shows error message under input
+
+🟢 SUCCESS STATE
+	•	border glows GREEN
+	•	smooth confirmation animation
+	•	transitions to next step automatically
+
+DEFAULT STATE
+	•	neutral grey border
+	•	clean minimal look
+
+⸻
+
+🧩 UI DESIGN STYLE
+	•	Inspired by Google login + Stripe dashboard + Clerk auth
+	•	Glassy minimal card UI
+	•	Soft shadows
+	•	Smooth transitions
+	•	No clutter
+	•	High readability
+
+⸻
+
+📱 RESPONSIVENESS
+
+Must work perfectly on:
+	•	mobile phones (primary)
+	•	tablets
+	•	desktop
+
+⸻
+
+🔌 FRONTEND INTEGRATION ONLY
+
+Use existing API endpoints:
+	•	POST /login/send-otp
+	•	POST /login/verify-otp
+	•	POST /login/password
+	•	GET /session
+
+DO NOT create backend logic.
+
+Only consume APIs.
+
+⸻
+
+⚠️ STRICT RULES
+
+You MUST NOT:
+	•	modify backend logic
+	•	modify Cloudflare Worker setup
+	•	change Supabase schema
+	•	change CI/CD or deployment
+	•	assume missing APIs exist
+
+You MUST:
+	•	build UI only
+	•	handle frontend state
+	•	handle animations
+	•	handle validation UI
+	•	call existing APIs correctly
+
+⸻
+
+🧠 UX GOAL
+
+This auth system should feel like:
+	•	Google login simplicity
+	•	Stripe-level polish
+	•	Auth0 security clarity
+	•	Clerk smooth transitions
+
+But adapted for:
+	•	Nigeria-first phone OTP system
+	•	low bandwidth environments
+	•	fast mobile usage
+
+⸻
+
+🎯 FINAL OUTPUT
+
+A fully working frontend authentication system with:
+	•	Phone OTP login
+	•	Password login fallback
+	•	Animated state-driven auth box
+	•	Clean modern UI
+	•	API-connected frontend only

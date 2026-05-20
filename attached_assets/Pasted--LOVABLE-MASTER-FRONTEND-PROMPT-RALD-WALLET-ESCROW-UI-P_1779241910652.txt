@@ -1,0 +1,589 @@
+# LOVABLE MASTER FRONTEND PROMPT — RALD WALLET + ESCROW UI
+
+## PROJECT
+RALD — Root Authentication & Login Directory
+
+Production Backend:
+https://auth.ostloop.name.ng
+
+Supabase Backend:
+https://onxdcikfttdmnhofsuwo.supabase.co
+
+GitHub Repository:
+https://github.com/Ostinato-Loop/rald.git
+
+---
+
+# MISSION
+
+Build the COMPLETE frontend Wallet + Escrow system UI for RALD.
+
+This is a fintech-grade financial interface for:
+- wallets
+- escrow
+- marketplace protection
+- internal transfers
+- dispute management
+- financial monitoring
+
+The backend already exists or will exist separately.
+
+DO NOT:
+- modify backend logic
+- modify Cloudflare Workers
+- modify Supabase schema
+- modify deployment systems
+- modify CI/CD
+
+ONLY build frontend UI/UX and frontend API integrations.
+
+---
+
+# CORE GOAL
+
+Build a financial experience comparable to:
+
+- Stripe Dashboard
+- Paystack Business
+- Flutterwave Dashboard
+- Wise
+- Revolut
+- PayPal Escrow UX
+
+The interface must feel:
+- secure
+- modern
+- trustworthy
+- premium
+- enterprise-grade
+- fintech-quality
+
+This is NOT a normal wallet page.
+
+This is a complete financial operations experience.
+
+---
+
+# GLOBAL LAYOUT
+
+## LEFT SIDEBAR
+
+Create modern fintech navigation.
+
+Sections:
+
+### Wallet
+- Overview
+- Transactions
+- Transfers
+- Funding
+- Withdrawals
+
+### Escrow
+- Active Escrows
+- Milestones
+- Disputes
+- Arbitration
+- Completed Escrows
+
+### Analytics
+- Spending
+- Revenue
+- Trends
+- Financial Reports
+
+### Settings
+- Payment Methods
+- Security
+- Notifications
+- Preferences
+
+Sidebar behavior:
+- collapsible
+- fintech-grade spacing
+- active state highlights
+- responsive mobile navigation
+
+---
+
+# TOPBAR
+
+Include:
+- wallet balance quick view
+- notifications
+- profile avatar
+- currency selector (NGN default)
+- environment badge if needed
+
+---
+
+# WALLET OVERVIEW PAGE
+
+This is the main financial dashboard.
+
+Display:
+- Available Balance
+- Escrow Balance
+- Pending Balance
+- Frozen Balance
+- Total Transaction Volume
+- Recent Activity
+
+Use:
+- large premium balance cards
+- animated counters
+- fintech charts
+- smooth transitions
+
+---
+
+# MAIN BALANCE CARD
+
+Create Stripe/Revolut-quality wallet card.
+
+Display:
+- NGN currency formatting
+- available balance
+- account identifier
+- wallet status
+
+Actions:
+- Add Money
+- Withdraw
+- Transfer
+- View Statement
+
+Use:
+- subtle gradients
+- glassmorphism lightly
+- premium shadows
+
+---
+
+# TRANSACTIONS PAGE
+
+Enterprise transaction history interface.
+
+Display:
+- transaction list
+- transaction type
+- amount
+- status
+- timestamp
+- counterparty
+- reference ID
+
+Statuses:
+- completed
+- pending
+- failed
+- reversed
+- disputed
+
+Filters:
+- date range
+- amount
+- status
+- transaction type
+
+Include:
+- export button
+- search
+- advanced filtering
+
+Style:
+- Stripe transaction history
+- Paystack operations UI
+
+---
+
+# TRANSFERS PAGE
+
+Internal wallet transfer UI.
+
+Allow:
+- transfer by phone number
+- transfer by RALD ID
+- transfer by user tag
+
+Flow:
+1. Enter recipient
+2. Enter amount
+3. Confirm transfer
+4. Success screen
+
+Include:
+- recipient verification
+- fee preview
+- realtime balance updates
+
+---
+
+# FUNDING PAGE
+
+Wallet funding UI.
+
+Display payment methods:
+- Paystack
+- Flutterwave
+- Monnify
+- Bank Transfer
+
+Use:
+- clean payment method cards
+- secure payment indicators
+- fintech checkout experience
+
+Flow:
+1. Select method
+2. Enter amount
+3. Continue to payment
+
+---
+
+# WITHDRAWALS PAGE
+
+Withdrawal flow UI.
+
+Allow:
+- bank withdrawal
+- linked account selection
+- withdrawal amount entry
+
+Display:
+- processing status
+- estimated arrival time
+- withdrawal fees
+
+Use:
+- secure confirmation screens
+- transaction verification UI
+
+---
+
+# ESCROW DASHBOARD
+
+This is the heart of the escrow system.
+
+Display:
+- Active Escrows
+- Pending Milestones
+- Funds Locked
+- Completed Deals
+- Dispute Alerts
+
+Use:
+- milestone progress cards
+- escrow lifecycle indicators
+- trust badges
+
+---
+
+# ACTIVE ESCROWS PAGE
+
+Display escrow contracts/cards.
+
+Each escrow card contains:
+- buyer
+- seller
+- amount
+- status
+- milestone progress
+- release conditions
+- deadline
+
+Statuses:
+- awaiting funding
+- funded
+- in progress
+- awaiting release
+- disputed
+- completed
+
+Actions:
+- view details
+- release funds
+- request revision
+- open dispute
+
+---
+
+# ESCROW DETAILS PAGE
+
+Detailed escrow transaction interface.
+
+Display:
+- escrow timeline
+- agreement summary
+- payment history
+- attached milestones
+- communication timeline
+- dispute status if any
+
+Use:
+- timeline UI
+- modern progress trackers
+- secure financial visuals
+
+---
+
+# MILESTONES PAGE
+
+Milestone-based payment system UI.
+
+Each milestone contains:
+- title
+- amount
+- status
+- deadline
+- approval state
+
+Actions:
+- approve milestone
+- reject milestone
+- request changes
+
+Use:
+- milestone progress tracker
+- clean checklist UI
+
+---
+
+# DISPUTES PAGE
+
+Fintech-grade dispute management UI.
+
+Display:
+- dispute list
+- escrow references
+- participants
+- dispute reason
+- current moderator
+- evidence status
+
+Statuses:
+- open
+- under review
+- escalated
+- resolved
+
+Actions:
+- upload evidence
+- respond
+- escalate
+- view resolution
+
+Style:
+- Stripe dispute center
+- PayPal resolution center
+
+---
+
+# ANALYTICS PAGE
+
+Financial analytics dashboard.
+
+Display:
+- spending trends
+- incoming vs outgoing funds
+- escrow completion rate
+- transaction volume
+- category analysis
+
+Use:
+- fintech charts
+- animated graphs
+- revenue insights
+
+---
+
+# PAYMENT METHODS PAGE
+
+Allow management of:
+- bank accounts
+- payment providers
+- linked cards (UI only if backend absent)
+
+Display:
+- verification status
+- preferred payout method
+
+---
+
+# SECURITY PAGE
+
+Financial security center.
+
+Display:
+- device verification
+- transaction PIN status
+- OTP protection
+- suspicious activity alerts
+
+Include:
+- secure confirmation modals
+- verification flows
+
+---
+
+# FINTECH DESIGN SYSTEM
+
+## STYLE DIRECTION
+
+Must feel like:
+- Stripe Treasury
+- Revolut
+- Wise
+- Paystack
+- Flutterwave
+
+Modern fintech aesthetics.
+
+---
+
+# VISUAL LANGUAGE
+
+Use:
+- premium balance cards
+- subtle gradients
+- smooth transitions
+- secure trust indicators
+- financial clarity
+
+Avoid:
+- clutter
+- overly playful visuals
+- crypto-style chaos
+
+---
+
+# COLORS
+
+Professional fintech palette:
+- green = success
+- yellow = pending
+- red = failed/dispute
+- blue = informational
+- grey = neutral
+
+---
+
+# CHARTS & VISUALS
+
+Include:
+- transaction graphs
+- balance trends
+- spending heatmaps
+- milestone progress bars
+- escrow lifecycle visuals
+
+---
+
+# ANIMATIONS
+
+Use:
+- smooth balance transitions
+- secure payment animations
+- subtle confirmation effects
+- loading shimmer states
+
+---
+
+# RESPONSIVENESS
+
+Must work perfectly on:
+- mobile
+- tablet
+- desktop
+
+Mobile-first priority.
+
+---
+
+# MOBILE UX
+
+On mobile:
+- simplified navigation
+- stacked cards
+- easy financial readability
+- optimized transfer flow
+
+---
+
+# FRONTEND API INTEGRATION
+
+Use existing backend APIs only.
+
+Base API:
+https://auth.ostloop.name.ng
+
+Potential endpoints:
+- /wallet
+- /wallet/transactions
+- /wallet/transfers
+- /wallet/funding
+- /wallet/withdrawals
+- /escrow
+- /escrow/milestones
+- /escrow/disputes
+
+DO NOT invent backend systems.
+
+---
+
+# SECURITY UX FEATURES
+
+Display:
+- secure payment badges
+- encrypted transaction indicators
+- OTP verification prompts
+- “Protected by RALD” trust markers
+
+For sensitive actions:
+- confirmation modals
+- secondary verification
+- transaction review screen
+
+---
+
+# STRICT RULES
+
+You MUST NOT:
+- modify backend logic
+- modify Cloudflare Workers
+- modify deployment systems
+- modify Supabase schema
+- alter CI/CD
+- expose secrets
+
+You MUST:
+- focus on frontend only
+- preserve API compatibility
+- maintain fintech-grade UX
+- ensure smooth user trust flows
+
+---
+
+# FINAL GOAL
+
+Deliver a complete fintech-grade Wallet + Escrow frontend experience that feels like:
+
+Stripe
++
+Wise
++
+Paystack
++
+Revolut
++
+PayPal Escrow
+
+for a Nigeria-first identity + financial infrastructure platform.
+
+The final experience should feel:
+- secure
+- premium
+- trustworthy
+- scalable
+- enterprise-grade
+- modern fintech quality

@@ -1,0 +1,609 @@
+# LOVABLE MASTER FRONTEND PROMPT — RALD ADMIN CONTROL CENTER
+
+## PROJECT
+RALD — Root Authentication & Login Directory
+
+Production Backend:
+https://auth.ostloop.name.ng
+
+Supabase Backend:
+https://onxdcikfttdmnhofsuwo.supabase.co
+
+GitHub Repository:
+https://github.com/Ostinato-Loop/rald.git
+
+---
+
+# MISSION
+
+Build the COMPLETE frontend UI for the RALD Admin Control Center.
+
+This is a SUPER ADMIN surveillance and operations dashboard for the RALD identity infrastructure platform.
+
+The backend already exists.
+
+DO NOT:
+- modify backend logic
+- modify Cloudflare Workers
+- modify Supabase schema
+- modify deployment systems
+- modify CI/CD
+
+ONLY build frontend UI/UX and frontend API integrations.
+
+---
+
+# CORE GOAL
+
+Build an enterprise-grade admin control center similar to:
+
+- Auth0 tenant administration
+- Stripe operations dashboard
+- AWS control console
+- Cloudflare Zero Trust admin panel
+- Google Admin Console
+
+The interface must feel:
+- powerful
+- secure
+- intelligent
+- realtime
+- enterprise-grade
+- mission-critical
+
+This is NOT a normal dashboard.
+
+This is the operational command center for the entire RALD ecosystem.
+
+---
+
+# GLOBAL LAYOUT
+
+## LEFT SIDEBAR
+
+Create expandable enterprise sidebar navigation.
+
+Sections:
+
+### Core
+- Overview
+- Live Activity
+- Users
+- Sessions
+- Roles & Permissions
+
+### Security
+- Threat Monitoring
+- Suspicious Logins
+- OTP Monitoring
+- Device Intelligence
+- Abuse Detection
+
+### Infrastructure
+- API Traffic
+- Queues
+- Webhooks
+- Worker Health
+- Database Status
+
+### Financial
+- Wallet Oversight
+- Escrow Monitoring
+- Transactions
+- Disputes
+- Risk Flags
+
+### Developer Ecosystem
+- Applications
+- OAuth Clients
+- API Keys
+- SDK Usage
+
+### System
+- Audit Logs
+- Feature Flags
+- Environment Controls
+- Notifications
+- Settings
+
+Sidebar behavior:
+- collapsible
+- icon-first design
+- enterprise spacing
+- realtime status indicators
+
+---
+
+# TOPBAR
+
+Include:
+- Global search
+- Incident alerts
+- System health indicators
+- Current environment badge
+- Admin avatar menu
+- Live activity pulse indicator
+
+Realtime indicators:
+- green = healthy
+- yellow = degraded
+- red = critical
+
+---
+
+# OVERVIEW PAGE
+
+This is the main command center.
+
+Display realtime operational cards:
+
+- Active Users
+- Live Sessions
+- API Requests/min
+- OTP Requests
+- Failed Logins
+- Active Threats
+- Queue Backlog
+- Worker Health
+- Database Latency
+- Escrow Volume
+- Wallet Transactions
+
+Use:
+- animated realtime counters
+- charts
+- heatmaps
+- status indicators
+
+Style:
+- Stripe metrics + Cloudflare analytics hybrid
+
+---
+
+# LIVE ACTIVITY PAGE
+
+Create realtime event stream UI.
+
+Display:
+- user logins
+- OTP sends
+- failed verifications
+- role changes
+- API requests
+- wallet actions
+- webhook events
+- suspicious activities
+
+Each event should show:
+- timestamp
+- user/device
+- IP address
+- event type
+- severity level
+
+Include:
+- realtime updating feed
+- pause stream button
+- filtering system
+
+---
+
+# USERS MANAGEMENT PAGE
+
+Enterprise user management system.
+
+Show:
+- searchable users table
+- phone numbers
+- account status
+- verification state
+- roles
+- risk score
+- last active
+
+Actions:
+- suspend user
+- reactivate user
+- revoke sessions
+- assign roles
+- flag account
+- open profile
+
+User profile drawer:
+- activity history
+- devices
+- sessions
+- wallet snapshot
+- API usage
+
+---
+
+# SESSIONS PAGE
+
+Realtime session intelligence dashboard.
+
+Display:
+- active devices
+- browser info
+- geolocation
+- IP addresses
+- session age
+- risk score
+
+Actions:
+- revoke session
+- revoke all sessions
+- force reauthentication
+
+Visualize:
+- session map
+- concurrent logins
+- unusual behavior
+
+---
+
+# THREAT MONITORING PAGE
+
+This page must feel like a cybersecurity console.
+
+Display:
+- suspicious login attempts
+- brute-force detection
+- OTP abuse
+- impossible travel detection
+- device anomalies
+- rate limit violations
+
+Use:
+- security severity badges
+- threat heatmaps
+- attack timelines
+- incident cards
+
+Status colors:
+- green = safe
+- yellow = warning
+- red = threat
+- purple = critical
+
+---
+
+# OTP MONITORING PAGE
+
+Realtime OTP observability UI.
+
+Show:
+- OTP requests per minute
+- provider health
+- delivery success rate
+- failed verifications
+- abuse spikes
+
+Providers:
+- Termii
+- Twilio
+- Africa’s Talking
+
+Visualize:
+- delivery graphs
+- regional heatmaps
+- queue backlog
+
+---
+
+# DEVICE INTELLIGENCE PAGE
+
+Display:
+- known devices
+- suspicious devices
+- fingerprint data
+- browser types
+- platform analytics
+
+Use:
+- device cards
+- risk scoring
+- trust indicators
+
+---
+
+# API TRAFFIC PAGE
+
+Realtime API observability dashboard.
+
+Display:
+- request volume
+- response codes
+- endpoint analytics
+- latency graphs
+- top API consumers
+
+Include:
+- request stream logs
+- filters
+- API health indicators
+
+Style:
+- Vercel logs + Cloudflare analytics
+
+---
+
+# WORKER HEALTH PAGE
+
+Cloudflare infrastructure observability UI.
+
+Display:
+- Worker health
+- deployment status
+- queue backlog
+- KV health
+- Durable Object status
+- D1 latency
+- R2 usage
+
+Use:
+- infrastructure cards
+- health pulses
+- deployment timeline
+
+---
+
+# WALLET OVERSIGHT PAGE
+
+Admin financial surveillance UI.
+
+Display:
+- total wallet volume
+- escrow balances
+- frozen funds
+- pending transfers
+- suspicious transactions
+
+Use:
+- fintech-style analytics
+- fraud indicators
+- transaction monitoring tables
+
+---
+
+# DISPUTES PAGE
+
+Escrow dispute monitoring interface.
+
+Show:
+- open disputes
+- assigned moderators
+- transaction references
+- evidence status
+- dispute timeline
+
+Actions:
+- escalate
+- resolve
+- freeze funds
+- assign moderator
+
+---
+
+# APPLICATIONS PAGE
+
+Developer ecosystem management.
+
+Display:
+- OAuth apps
+- API clients
+- webhook consumers
+- usage levels
+- risk indicators
+
+Actions:
+- revoke app
+- suspend app
+- rotate credentials
+- inspect scopes
+
+---
+
+# AUDIT LOGS PAGE
+
+Immutable enterprise audit interface.
+
+Display:
+- actor
+- action
+- timestamp
+- IP address
+- affected resource
+- severity
+
+Filters:
+- admin actions
+- auth actions
+- financial actions
+- infrastructure events
+
+Style:
+- AWS CloudTrail inspired
+
+---
+
+# FEATURE FLAGS PAGE
+
+Enterprise feature rollout UI.
+
+Display:
+- feature name
+- rollout percentage
+- environment
+- enabled state
+
+Actions:
+- toggle feature
+- gradual rollout slider
+- environment targeting
+
+---
+
+# SETTINGS PAGE
+
+Super admin settings UI.
+
+Include:
+- system preferences
+- notification routing
+- security thresholds
+- provider settings
+- environment controls
+
+---
+
+# DESIGN SYSTEM
+
+## STYLE DIRECTION
+
+Must feel like:
+- Cloudflare Zero Trust
+- Stripe Internal Ops
+- AWS Console
+- Datadog
+- Auth0 Admin
+
+Enterprise infrastructure aesthetics.
+
+---
+
+# VISUAL LANGUAGE
+
+Use:
+- dark-first design
+- realtime glowing indicators
+- high-density information layout
+- operational dashboards
+- command-center atmosphere
+
+---
+
+# COLOR SYSTEM
+
+Use status-driven colors carefully:
+- green = healthy
+- yellow = warning
+- red = critical
+- blue = informational
+- purple = infrastructure/system
+
+Avoid over-saturation.
+
+---
+
+# CHARTS & VISUALS
+
+Include:
+- realtime line charts
+- heatmaps
+- event timelines
+- infrastructure cards
+- animated counters
+- geographic activity maps
+
+---
+
+# LOADING STATES
+
+Use:
+- skeleton loaders
+- realtime shimmer effects
+- pulse indicators
+
+---
+
+# RESPONSIVENESS
+
+Must work on:
+- desktop (primary)
+- tablet
+- mobile emergency access mode
+
+---
+
+# FRONTEND API INTEGRATION
+
+Use existing backend APIs only.
+
+Base API:
+https://auth.ostloop.name.ng
+
+Potential endpoints:
+- /admin/users
+- /admin/audit
+- /admin/sessions
+- /admin/security
+- /admin/otp
+- /admin/metrics
+- /admin/wallets
+- /admin/disputes
+- /admin/apps
+- /admin/feature-flags
+
+DO NOT invent backend logic.
+
+---
+
+# SECURITY UX FEATURES
+
+Display:
+- verified admin session
+- secure environment badges
+- audit tracking indicators
+- privileged action warnings
+
+For destructive actions:
+- confirmation modal
+- secondary verification UI
+- security acknowledgement prompts
+
+---
+
+# STRICT RULES
+
+You MUST NOT:
+- modify backend logic
+- modify Cloudflare Workers
+- modify deployment systems
+- modify Supabase schema
+- alter CI/CD
+- expose secrets
+
+You MUST:
+- build frontend only
+- maintain enterprise-grade UX
+- preserve backend compatibility
+- focus on operational visibility
+- maintain realtime dashboard feel
+
+---
+
+# FINAL GOAL
+
+Deliver a complete enterprise-grade Admin Control Center that feels like:
+
+Cloudflare Zero Trust
++
+Stripe Internal Ops
++
+Auth0 Tenant Management
++
+AWS Console
++
+Datadog Observability
+
+for a Nigeria-first identity infrastructure platform.
+
+The final experience should feel:
+- secure
+- operational
+- intelligent
+- realtime
+- premium
+- infrastructure-grade
+- mission-critical
