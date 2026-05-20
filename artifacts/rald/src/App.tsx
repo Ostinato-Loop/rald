@@ -1,14 +1,9 @@
-import {
-  Switch,
-  Route,
-  Router as WouterRouter,
-  Redirect,
-  useLocation,
-} from "wouter";
+import { Switch, Route, Router as WouterRouter, Redirect, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/lib/theme";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
+import { RaldLoader } from "@/components/ui/RaldLoader";
 
 // Layouts
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -64,11 +59,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-background">
-        <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
+    return <RaldLoader fullscreen size="md" label="Authenticating" />;
   }
 
   if (!isAuthenticated) {
@@ -93,278 +84,98 @@ function AppRouter() {
 
       {/* Dashboard routes */}
       <Route path="/dashboard">
-        {() => (
-          <ProtectedRoute>
-            <DashboardLayout>
-              <Overview />
-            </DashboardLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><DashboardLayout><Overview /></DashboardLayout></ProtectedRoute>}
       </Route>
       <Route path="/dashboard/profile">
-        {() => (
-          <ProtectedRoute>
-            <DashboardLayout>
-              <Profile />
-            </DashboardLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><DashboardLayout><Profile /></DashboardLayout></ProtectedRoute>}
       </Route>
       <Route path="/dashboard/security">
-        {() => (
-          <ProtectedRoute>
-            <DashboardLayout>
-              <Security />
-            </DashboardLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><DashboardLayout><Security /></DashboardLayout></ProtectedRoute>}
       </Route>
       <Route path="/dashboard/sessions">
-        {() => (
-          <ProtectedRoute>
-            <DashboardLayout>
-              <Sessions />
-            </DashboardLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><DashboardLayout><Sessions /></DashboardLayout></ProtectedRoute>}
       </Route>
       <Route path="/dashboard/api-keys">
-        {() => (
-          <ProtectedRoute>
-            <DashboardLayout>
-              <ApiKeys />
-            </DashboardLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><DashboardLayout><ApiKeys /></DashboardLayout></ProtectedRoute>}
       </Route>
       <Route path="/dashboard/wallet">
-        {() => (
-          <ProtectedRoute>
-            <DashboardLayout>
-              <Wallet />
-            </DashboardLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><DashboardLayout><Wallet /></DashboardLayout></ProtectedRoute>}
       </Route>
       <Route path="/dashboard/developers">
-        {() => (
-          <ProtectedRoute>
-            <DashboardLayout>
-              <DashDevelopers />
-            </DashboardLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><DashboardLayout><DashDevelopers /></DashboardLayout></ProtectedRoute>}
       </Route>
       <Route path="/dashboard/settings">
-        {() => (
-          <ProtectedRoute>
-            <DashboardLayout>
-              <Settings />
-            </DashboardLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><DashboardLayout><Settings /></DashboardLayout></ProtectedRoute>}
       </Route>
 
       {/* Developer portal routes */}
       <Route path="/developers">
-        {() => (
-          <ProtectedRoute>
-            <DeveloperLayout>
-              <DevOverview />
-            </DeveloperLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><DeveloperLayout><DevOverview /></DeveloperLayout></ProtectedRoute>}
       </Route>
       <Route path="/developers/apps">
-        {() => (
-          <ProtectedRoute>
-            <DeveloperLayout>
-              <Apps />
-            </DeveloperLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><DeveloperLayout><Apps /></DeveloperLayout></ProtectedRoute>}
       </Route>
       <Route path="/developers/api-keys">
-        {() => (
-          <ProtectedRoute>
-            <DeveloperLayout>
-              <DevApiKeys />
-            </DeveloperLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><DeveloperLayout><DevApiKeys /></DeveloperLayout></ProtectedRoute>}
       </Route>
       <Route path="/developers/oauth">
-        {() => (
-          <ProtectedRoute>
-            <DeveloperLayout>
-              <OAuthClients />
-            </DeveloperLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><DeveloperLayout><OAuthClients /></DeveloperLayout></ProtectedRoute>}
       </Route>
       <Route path="/developers/webhooks">
-        {() => (
-          <ProtectedRoute>
-            <DeveloperLayout>
-              <Webhooks />
-            </DeveloperLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><DeveloperLayout><Webhooks /></DeveloperLayout></ProtectedRoute>}
       </Route>
       <Route path="/developers/logs">
-        {() => (
-          <ProtectedRoute>
-            <DeveloperLayout>
-              <Logs />
-            </DeveloperLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><DeveloperLayout><Logs /></DeveloperLayout></ProtectedRoute>}
       </Route>
       <Route path="/developers/usage">
-        {() => (
-          <ProtectedRoute>
-            <DeveloperLayout>
-              <Usage />
-            </DeveloperLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><DeveloperLayout><Usage /></DeveloperLayout></ProtectedRoute>}
       </Route>
       <Route path="/developers/sdks">
-        {() => (
-          <ProtectedRoute>
-            <DeveloperLayout>
-              <SDKs />
-            </DeveloperLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><DeveloperLayout><SDKs /></DeveloperLayout></ProtectedRoute>}
       </Route>
       <Route path="/developers/billing">
-        {() => (
-          <ProtectedRoute>
-            <DeveloperLayout>
-              <Billing />
-            </DeveloperLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><DeveloperLayout><Billing /></DeveloperLayout></ProtectedRoute>}
       </Route>
       <Route path="/developers/settings">
-        {() => (
-          <ProtectedRoute>
-            <DeveloperLayout>
-              <DevSettings />
-            </DeveloperLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><DeveloperLayout><DevSettings /></DeveloperLayout></ProtectedRoute>}
       </Route>
 
       {/* Admin routes */}
       <Route path="/admin">
-        {() => (
-          <ProtectedRoute>
-            <AdminLayout>
-              <AdminOverview />
-            </AdminLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><AdminLayout><AdminOverview /></AdminLayout></ProtectedRoute>}
       </Route>
       <Route path="/admin/activity">
-        {() => (
-          <ProtectedRoute>
-            <AdminLayout>
-              <LiveActivity />
-            </AdminLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><AdminLayout><LiveActivity /></AdminLayout></ProtectedRoute>}
       </Route>
       <Route path="/admin/users">
-        {() => (
-          <ProtectedRoute>
-            <AdminLayout>
-              <Users />
-            </AdminLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><AdminLayout><Users /></AdminLayout></ProtectedRoute>}
       </Route>
       <Route path="/admin/sessions">
-        {() => (
-          <ProtectedRoute>
-            <AdminLayout>
-              <AdminSessions />
-            </AdminLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><AdminLayout><AdminSessions /></AdminLayout></ProtectedRoute>}
       </Route>
       <Route path="/admin/security">
-        {() => (
-          <ProtectedRoute>
-            <AdminLayout>
-              <AdminSecurity />
-            </AdminLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><AdminLayout><AdminSecurity /></AdminLayout></ProtectedRoute>}
       </Route>
       <Route path="/admin/otp">
-        {() => (
-          <ProtectedRoute>
-            <AdminLayout>
-              <OTPMonitor />
-            </AdminLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><AdminLayout><OTPMonitor /></AdminLayout></ProtectedRoute>}
       </Route>
       <Route path="/admin/api-traffic">
-        {() => (
-          <ProtectedRoute>
-            <AdminLayout>
-              <ApiTraffic />
-            </AdminLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><AdminLayout><ApiTraffic /></AdminLayout></ProtectedRoute>}
       </Route>
       <Route path="/admin/wallets">
-        {() => (
-          <ProtectedRoute>
-            <AdminLayout>
-              <Wallets />
-            </AdminLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><AdminLayout><Wallets /></AdminLayout></ProtectedRoute>}
       </Route>
       <Route path="/admin/disputes">
-        {() => (
-          <ProtectedRoute>
-            <AdminLayout>
-              <Disputes />
-            </AdminLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><AdminLayout><Disputes /></AdminLayout></ProtectedRoute>}
       </Route>
       <Route path="/admin/audit">
-        {() => (
-          <ProtectedRoute>
-            <AdminLayout>
-              <AuditLogs />
-            </AdminLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><AdminLayout><AuditLogs /></AdminLayout></ProtectedRoute>}
       </Route>
       <Route path="/admin/feature-flags">
-        {() => (
-          <ProtectedRoute>
-            <AdminLayout>
-              <FeatureFlags />
-            </AdminLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><AdminLayout><FeatureFlags /></AdminLayout></ProtectedRoute>}
       </Route>
       <Route path="/admin/settings">
-        {() => (
-          <ProtectedRoute>
-            <AdminLayout>
-              <AdminSettings />
-            </AdminLayout>
-          </ProtectedRoute>
-        )}
+        {() => <ProtectedRoute><AdminLayout><AdminSettings /></AdminLayout></ProtectedRoute>}
       </Route>
 
       {/* Root redirect */}
