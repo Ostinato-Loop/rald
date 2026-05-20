@@ -132,7 +132,9 @@ export default function Login() {
         method: "POST",
         body: JSON.stringify({ phone }),
       });
-    } catch {}
+    } catch (_error) {
+          // intentionally ignored
+        }
   };
 
   return (

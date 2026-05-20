@@ -9,6 +9,7 @@ export default tseslint.config(
   {
     ignores: [
       "dist",
+      "artifacts/mockup-sandbox",
       ".output",
       ".vinxi",
       "src/integrations/supabase/types.ts",
@@ -48,6 +49,7 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
       "@typescript-eslint/no-unused-vars": "off",
+      "no-empty": ["error", { allowEmptyCatch: true }],
       "@typescript-eslint/no-explicit-any": "warn",
     },
   },

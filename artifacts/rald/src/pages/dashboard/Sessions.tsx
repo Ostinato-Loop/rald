@@ -91,7 +91,9 @@ export default function Sessions() {
     try {
       await apiCall("/sessions/all", { method: "DELETE" });
       qc.invalidateQueries({ queryKey: ["sessions"] });
-    } catch {}
+    } catch (_error) {
+          // intentionally ignored
+        }
     toast.success("All other sessions revoked");
   };
 
