@@ -13,9 +13,23 @@ function getToken(): string | null {
 
 export async function apiCall<T = unknown>(path: string, options?: RequestInit): Promise<T> {
   const token = getToken();
+  const customHeaders = options?.headers instanceof Headers
+    ? Array.from(options.headers.entries()).reduce<Record<string, string>>((acc, [key, value]) => {
+      acc[key] = value;
+      return acc;
+    }, {})
+    : typeof options?.headers === 'object' && options?.headers !== null
+      ? Object.fromEntries(
+          Object.entries(options.headers).map(([key, value]) => [
+            key,
+            Array.isArray(value) ? value.join(', ') : String(value),
+          ])
+        )
+      : {};
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(options?.headers as Record<string, string>),
+    ...customHeaders,
   };
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
