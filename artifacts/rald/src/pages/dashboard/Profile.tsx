@@ -62,7 +62,9 @@ export default function Profile() {
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Profile</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Manage your identity and account details</p>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          Manage your identity and account details
+        </p>
       </div>
 
       {isLoading ? (
@@ -72,7 +74,11 @@ export default function Profile() {
           <div className="flex items-center justify-between mb-5">
             <h3 className="font-semibold text-foreground">Identity</h3>
             <button
-              onClick={() => { setEditing(!editing); setName(p.name || ""); setEmail(p.email || ""); }}
+              onClick={() => {
+                setEditing(!editing);
+                setName(p.name || "");
+                setEmail(p.email || "");
+              }}
               className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground border border-border rounded-lg px-3 py-1.5 transition-colors"
               data-testid="edit-profile"
             >
@@ -83,34 +89,47 @@ export default function Profile() {
 
           <div className="flex items-start gap-5">
             <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-bold text-2xl shrink-0">
-              {(p.name || user?.phone || "RA").split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)}
+              {(p.name || user?.phone || "RA")
+                .split(" ")
+                .map((n: string) => n[0])
+                .join("")
+                .toUpperCase()
+                .slice(0, 2)}
             </div>
             <div className="flex-1 space-y-4">
               <div>
-                <label className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Display Name</label>
+                <label className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                  Display Name
+                </label>
                 {editing ? (
                   <input
                     value={name}
-                    onChange={e => setName(e.target.value)}
+                    onChange={(e) => setName(e.target.value)}
                     className="mt-1 w-full px-3 py-1.5 border border-border rounded-lg bg-background text-sm text-foreground outline-none focus:border-primary"
                     data-testid="name-input"
                   />
                 ) : (
-                  <p className="mt-0.5 text-sm text-foreground font-medium">{p.name || "—"}</p>
+                  <p className="mt-0.5 text-sm text-foreground font-medium">
+                    {p.name || "—"}
+                  </p>
                 )}
               </div>
               <div>
-                <label className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Email</label>
+                <label className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                  Email
+                </label>
                 {editing ? (
                   <input
                     value={email}
-                    onChange={e => setEmail(e.target.value)}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="optional@email.com"
                     className="mt-1 w-full px-3 py-1.5 border border-border rounded-lg bg-background text-sm text-foreground outline-none focus:border-primary"
                     data-testid="email-input"
                   />
                 ) : (
-                  <p className="mt-0.5 text-sm text-foreground">{p.email || "—"}</p>
+                  <p className="mt-0.5 text-sm text-foreground">
+                    {p.email || "—"}
+                  </p>
                 )}
               </div>
               {editing && (
@@ -141,10 +160,28 @@ export default function Profile() {
       {/* Identity details */}
       <div className="bg-card border border-border rounded-xl divide-y divide-border">
         {[
-          { icon: Phone, label: "Phone number", value: p.phone || user?.phone || "—", mono: true },
-          { icon: Mail, label: "Email address", value: p.email || user?.email || "Not set" },
-          { icon: User, label: "Account ID", value: p.id || user?.id || "—", mono: true },
-          { icon: Shield, label: "Account status", value: p.status || "active" },
+          {
+            icon: Phone,
+            label: "Phone number",
+            value: p.phone || user?.phone || "—",
+            mono: true,
+          },
+          {
+            icon: Mail,
+            label: "Email address",
+            value: p.email || user?.email || "Not set",
+          },
+          {
+            icon: User,
+            label: "Account ID",
+            value: p.id || user?.id || "—",
+            mono: true,
+          },
+          {
+            icon: Shield,
+            label: "Account status",
+            value: p.status || "active",
+          },
         ].map(({ icon: Icon, label, value, mono }) => (
           <div key={label} className="flex items-center gap-4 p-4">
             <div className="p-2 bg-muted rounded-lg shrink-0">
@@ -152,7 +189,11 @@ export default function Profile() {
             </div>
             <div>
               <p className="text-xs text-muted-foreground">{label}</p>
-              <p className={`text-sm text-foreground mt-0.5 ${mono ? "font-mono" : ""}`}>{value}</p>
+              <p
+                className={`text-sm text-foreground mt-0.5 ${mono ? "font-mono" : ""}`}
+              >
+                {value}
+              </p>
             </div>
             {label === "Account status" && (
               <span className="ml-auto text-xs bg-green-500/10 text-green-500 border border-green-500/20 px-2 py-0.5 rounded-full font-medium capitalize">
@@ -168,7 +209,9 @@ export default function Profile() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-foreground">Account role</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Your permission level in RALD</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Your permission level in RALD
+            </p>
           </div>
           <span className="text-xs bg-primary/10 text-primary border border-primary/20 px-2.5 py-1 rounded-lg font-medium capitalize">
             {p.role || user?.role || "user"}

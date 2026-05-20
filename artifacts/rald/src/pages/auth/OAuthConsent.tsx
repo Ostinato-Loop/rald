@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Shield, CheckCircle, XCircle, ChevronDown, Lock, Verified } from "lucide-react";
+import {
+  Shield,
+  CheckCircle,
+  XCircle,
+  ChevronDown,
+  Lock,
+  Verified,
+} from "lucide-react";
 
 const MOCK_APP = {
   name: "Loop Workspace",
@@ -9,10 +16,26 @@ const MOCK_APP = {
   logo: null,
   verified: true,
   permissions: [
-    { icon: "👤", title: "View profile information", description: "Access your name and account details" },
-    { icon: "📱", title: "Access verified phone number", description: "Read your verified mobile number" },
-    { icon: "🔐", title: "Maintain secure login session", description: "Keep you signed in across sessions" },
-    { icon: "💼", title: "Access wallet information", description: "Read your wallet balance and recent transactions" },
+    {
+      icon: "👤",
+      title: "View profile information",
+      description: "Access your name and account details",
+    },
+    {
+      icon: "📱",
+      title: "Access verified phone number",
+      description: "Read your verified mobile number",
+    },
+    {
+      icon: "🔐",
+      title: "Maintain secure login session",
+      description: "Keep you signed in across sessions",
+    },
+    {
+      icon: "💼",
+      title: "Access wallet information",
+      description: "Read your wallet balance and recent transactions",
+    },
   ],
   clientId: "cli_loop_ws_prod_a1b2c3",
   redirectUri: "https://workspace.ostloop.ng/auth/callback",
@@ -59,19 +82,35 @@ export default function OAuthConsent() {
             <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
           </div>
           <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-sm overflow-hidden p-1.5">
-            <img src="/rald-logo.png" alt="RALD" className="h-full w-auto object-contain" />
+            <img
+              src="/rald-logo.png"
+              alt="RALD"
+              className="h-full w-auto object-contain"
+            />
           </div>
         </div>
 
         {step === "entry" && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="bg-card border border-border rounded-xl p-6 space-y-5">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-card border border-border rounded-xl p-6 space-y-5"
+          >
             <div className="text-center">
               <div className="flex items-center justify-center gap-1.5 mb-2">
-                <h2 className="text-lg font-semibold text-foreground">{MOCK_APP.name}</h2>
-                {MOCK_APP.verified && <Verified className="w-4 h-4 text-primary" />}
+                <h2 className="text-lg font-semibold text-foreground">
+                  {MOCK_APP.name}
+                </h2>
+                {MOCK_APP.verified && (
+                  <Verified className="w-4 h-4 text-primary" />
+                )}
               </div>
-              <p className="text-sm text-muted-foreground">wants access to your RALD account</p>
-              <p className="text-xs text-muted-foreground mt-1">by {MOCK_APP.developer}</p>
+              <p className="text-sm text-muted-foreground">
+                wants access to your RALD account
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                by {MOCK_APP.developer}
+              </p>
             </div>
 
             <div className="flex items-center justify-center gap-2 text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30 py-2 px-3 rounded-lg">
@@ -99,19 +138,34 @@ export default function OAuthConsent() {
         )}
 
         {step === "consent" && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="bg-card border border-border rounded-xl p-6 space-y-5">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-card border border-border rounded-xl p-6 space-y-5"
+          >
             <div>
-              <h2 className="text-base font-semibold text-foreground mb-0.5">{MOCK_APP.name} is requesting access</h2>
-              <p className="text-xs text-muted-foreground">Review the permissions below before allowing access</p>
+              <h2 className="text-base font-semibold text-foreground mb-0.5">
+                {MOCK_APP.name} is requesting access
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Review the permissions below before allowing access
+              </p>
             </div>
 
             <div className="space-y-2">
               {MOCK_APP.permissions.map((p, i) => (
-                <div key={i} className="flex gap-3 p-3 rounded-lg bg-muted/50 border border-border/50">
+                <div
+                  key={i}
+                  className="flex gap-3 p-3 rounded-lg bg-muted/50 border border-border/50"
+                >
                   <span className="text-base">{p.icon}</span>
                   <div>
-                    <p className="text-sm font-medium text-foreground">{p.title}</p>
-                    <p className="text-xs text-muted-foreground">{p.description}</p>
+                    <p className="text-sm font-medium text-foreground">
+                      {p.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {p.description}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -122,15 +176,29 @@ export default function OAuthConsent() {
               className="w-full flex items-center justify-between text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
             >
               <span>Technical details</span>
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showDetails ? "rotate-180" : ""}`} />
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform ${showDetails ? "rotate-180" : ""}`}
+              />
             </button>
 
             {showDetails && (
               <div className="bg-muted rounded-lg p-3 text-xs font-mono text-muted-foreground space-y-1">
-                <div><span className="text-foreground">client_id:</span> {MOCK_APP.clientId}</div>
-                <div><span className="text-foreground">redirect_uri:</span> {MOCK_APP.redirectUri}</div>
-                <div><span className="text-foreground">scopes:</span> {MOCK_APP.scopes.join(", ")}</div>
-                <div><span className="text-foreground">expires:</span> {MOCK_APP.expiresIn}</div>
+                <div>
+                  <span className="text-foreground">client_id:</span>{" "}
+                  {MOCK_APP.clientId}
+                </div>
+                <div>
+                  <span className="text-foreground">redirect_uri:</span>{" "}
+                  {MOCK_APP.redirectUri}
+                </div>
+                <div>
+                  <span className="text-foreground">scopes:</span>{" "}
+                  {MOCK_APP.scopes.join(", ")}
+                </div>
+                <div>
+                  <span className="text-foreground">expires:</span>{" "}
+                  {MOCK_APP.expiresIn}
+                </div>
               </div>
             )}
 
@@ -154,7 +222,11 @@ export default function OAuthConsent() {
         )}
 
         {step === "success" && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-card border border-green-500/30 rounded-xl p-8 text-center space-y-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-card border border-green-500/30 rounded-xl p-8 text-center space-y-4"
+          >
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -164,23 +236,40 @@ export default function OAuthConsent() {
               <CheckCircle className="w-8 h-8 text-green-500" />
             </motion.div>
             <div>
-              <h2 className="text-lg font-semibold text-foreground">Successfully connected</h2>
-              <p className="text-sm text-muted-foreground mt-1">{MOCK_APP.name} now has access to your RALD account</p>
+              <h2 className="text-lg font-semibold text-foreground">
+                Successfully connected
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                {MOCK_APP.name} now has access to your RALD account
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground">Redirecting in {countdown}s...</p>
+            <p className="text-xs text-muted-foreground">
+              Redirecting in {countdown}s...
+            </p>
           </motion.div>
         )}
 
         {step === "denied" && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="bg-card border border-border rounded-xl p-8 text-center space-y-4">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-card border border-border rounded-xl p-8 text-center space-y-4"
+          >
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
               <XCircle className="w-8 h-8 text-muted-foreground" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-foreground">Access denied</h2>
-              <p className="text-sm text-muted-foreground mt-1">{MOCK_APP.name} will not have access to your account</p>
+              <h2 className="text-lg font-semibold text-foreground">
+                Access denied
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                {MOCK_APP.name} will not have access to your account
+              </p>
             </div>
-            <button onClick={() => setStep("entry")} className="w-full py-2.5 border border-border text-foreground text-sm font-medium rounded-lg hover:bg-muted transition-colors">
+            <button
+              onClick={() => setStep("entry")}
+              className="w-full py-2.5 border border-border text-foreground text-sm font-medium rounded-lg hover:bg-muted transition-colors"
+            >
               Try again
             </button>
           </motion.div>

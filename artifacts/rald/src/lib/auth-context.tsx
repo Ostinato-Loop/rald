@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { apiCall } from "./api";
 
 export interface User {
@@ -51,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateUser = (partial: Partial<User>) => {
-    setUser(prev => {
+    setUser((prev) => {
       if (!prev) return prev;
       const updated = { ...prev, ...partial };
       localStorage.setItem("rald_user", JSON.stringify(updated));
@@ -66,7 +72,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, updateUser, isAuthenticated: !!user }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        logout,
+        updateUser,
+        isAuthenticated: !!user,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

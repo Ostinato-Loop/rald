@@ -86,25 +86,43 @@ export default function SDKs() {
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">SDKs & Libraries</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Official client libraries for the RALD API</p>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          Official client libraries for the RALD API
+        </p>
       </div>
 
       <div className="space-y-6">
-        {SDKS.map(sdk => (
-          <div key={sdk.lang} className="bg-card border border-border rounded-xl overflow-hidden" data-testid={`sdk-${sdk.lang.toLowerCase().split(/\s/)[0]}`}>
+        {SDKS.map((sdk) => (
+          <div
+            key={sdk.lang}
+            className="bg-card border border-border rounded-xl overflow-hidden"
+            data-testid={`sdk-${sdk.lang.toLowerCase().split(/\s/)[0]}`}
+          >
             <div className="flex items-center justify-between px-5 py-4 border-b border-border">
               <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 ${sdk.color} rounded-lg flex items-center justify-center text-white text-xs font-bold`}>{sdk.badge}</div>
-                <span className="font-semibold text-foreground">{sdk.lang}</span>
+                <div
+                  className={`w-8 h-8 ${sdk.color} rounded-lg flex items-center justify-center text-white text-xs font-bold`}
+                >
+                  {sdk.badge}
+                </div>
+                <span className="font-semibold text-foreground">
+                  {sdk.lang}
+                </span>
               </div>
               <div className="flex items-center gap-2">
-                <code className="text-xs font-mono text-muted-foreground bg-muted px-2 py-1 rounded">{sdk.install}</code>
+                <code className="text-xs font-mono text-muted-foreground bg-muted px-2 py-1 rounded">
+                  {sdk.install}
+                </code>
                 <button
                   onClick={() => copy(sdk.install, `install-${sdk.lang}`)}
                   className="p-1.5 text-muted-foreground hover:text-foreground rounded transition-colors"
                   data-testid={`copy-install-${sdk.lang.toLowerCase().split(/\s/)[0]}`}
                 >
-                  {copied === `install-${sdk.lang}` ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copied === `install-${sdk.lang}` ? (
+                    <Check className="w-3.5 h-3.5 text-green-500" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
                 </button>
               </div>
             </div>
@@ -116,7 +134,11 @@ export default function SDKs() {
                 onClick={() => copy(sdk.snippet, `snippet-${sdk.lang}`)}
                 className="absolute top-3 right-3 p-1.5 bg-card border border-border rounded text-muted-foreground hover:text-foreground transition-colors"
               >
-                {copied === `snippet-${sdk.lang}` ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied === `snippet-${sdk.lang}` ? (
+                  <Check className="w-3.5 h-3.5 text-green-500" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" />
+                )}
               </button>
             </div>
           </div>

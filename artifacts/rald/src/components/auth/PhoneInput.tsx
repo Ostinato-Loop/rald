@@ -20,7 +20,8 @@ export function PhoneInput({ value, onChange, disabled }: PhoneInputProps) {
   const [countryCode, setCountryCode] = useState("+234");
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const selectedCountry = COUNTRY_CODES.find(c => c.code === countryCode) || COUNTRY_CODES[0];
+  const selectedCountry =
+    COUNTRY_CODES.find((c) => c.code === countryCode) || COUNTRY_CODES[0];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, "");
@@ -47,7 +48,7 @@ export function PhoneInput({ value, onChange, disabled }: PhoneInputProps) {
 
       {showDropdown && (
         <div className="absolute top-full left-0 z-50 mt-1 bg-card border border-border rounded-lg shadow-lg overflow-hidden w-48">
-          {COUNTRY_CODES.map(c => (
+          {COUNTRY_CODES.map((c) => (
             <button
               key={c.code}
               type="button"

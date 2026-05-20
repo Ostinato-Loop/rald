@@ -7,7 +7,12 @@ interface OTPInputProps {
   disabled?: boolean;
 }
 
-export function OTPInput({ length = 6, value, onChange, disabled }: OTPInputProps) {
+export function OTPInput({
+  length = 6,
+  value,
+  onChange,
+  disabled,
+}: OTPInputProps) {
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
 
   const digits = value.split("").slice(0, length);
@@ -26,12 +31,16 @@ export function OTPInput({ length = 6, value, onChange, disabled }: OTPInputProp
       inputs.current[index - 1]?.focus();
     }
     if (e.key === "ArrowLeft" && index > 0) inputs.current[index - 1]?.focus();
-    if (e.key === "ArrowRight" && index < length - 1) inputs.current[index + 1]?.focus();
+    if (e.key === "ArrowRight" && index < length - 1)
+      inputs.current[index + 1]?.focus();
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, length);
+    const pasted = e.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, length);
     onChange(pasted.padEnd(length, "").slice(0, length));
     const lastIndex = Math.min(pasted.length, length - 1);
     inputs.current[lastIndex]?.focus();
@@ -42,14 +51,16 @@ export function OTPInput({ length = 6, value, onChange, disabled }: OTPInputProp
       {digits.map((digit, i) => (
         <input
           key={i}
-          ref={el => { inputs.current[i] = el; }}
+          ref={(el) => {
+            inputs.current[i] = el;
+          }}
           type="text"
           inputMode="numeric"
           maxLength={1}
           value={digit}
           disabled={disabled}
-          onChange={e => handleChange(i, e.target.value)}
-          onKeyDown={e => handleKeyDown(i, e)}
+          onChange={(e) => handleChange(i, e.target.value)}
+          onKeyDown={(e) => handleKeyDown(i, e)}
           onPaste={handlePaste}
           className={`
             w-11 h-12 text-center text-lg font-semibold rounded-lg border

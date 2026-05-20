@@ -12,9 +12,12 @@ interface GlowBoxProps {
 
 const glowStyles: Record<GlowState, string> = {
   default: "border-border shadow-sm",
-  loading: "border-yellow-400 shadow-[0_0_0_1px_rgba(251,191,36,0.4),0_0_20px_rgba(251,191,36,0.2)]",
-  error: "border-red-500 shadow-[0_0_0_1px_rgba(239,68,68,0.4),0_0_20px_rgba(239,68,68,0.2)]",
-  success: "border-green-500 shadow-[0_0_0_1px_rgba(34,197,94,0.4),0_0_20px_rgba(34,197,94,0.2)]",
+  loading:
+    "border-yellow-400 shadow-[0_0_0_1px_rgba(251,191,36,0.4),0_0_20px_rgba(251,191,36,0.2)]",
+  error:
+    "border-red-500 shadow-[0_0_0_1px_rgba(239,68,68,0.4),0_0_20px_rgba(239,68,68,0.2)]",
+  success:
+    "border-green-500 shadow-[0_0_0_1px_rgba(34,197,94,0.4),0_0_20px_rgba(34,197,94,0.2)]",
 };
 
 const shakeVariants: Variants = {
@@ -49,9 +52,25 @@ const successPulse: Variants = {
   idle: {},
 };
 
-export function GlowBox({ state = "default", children, className = "" }: GlowBoxProps) {
-  const animate = state === "error" ? "shake" : state === "loading" || state === "success" ? "pulse" : "idle";
-  const variants = state === "error" ? shakeVariants : state === "loading" ? pulseVariants : state === "success" ? successPulse : undefined;
+export function GlowBox({
+  state = "default",
+  children,
+  className = "",
+}: GlowBoxProps) {
+  const animate =
+    state === "error"
+      ? "shake"
+      : state === "loading" || state === "success"
+        ? "pulse"
+        : "idle";
+  const variants =
+    state === "error"
+      ? shakeVariants
+      : state === "loading"
+        ? pulseVariants
+        : state === "success"
+          ? successPulse
+          : undefined;
 
   return (
     <motion.div

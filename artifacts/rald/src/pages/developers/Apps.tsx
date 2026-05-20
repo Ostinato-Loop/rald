@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Plus, Copy, Eye, EyeOff, Edit3, Trash2, ExternalLink } from "lucide-react";
+import {
+  Plus,
+  Copy,
+  Eye,
+  EyeOff,
+  Edit3,
+  Trash2,
+  ExternalLink,
+} from "lucide-react";
 import { toast } from "sonner";
 
 const MOCK_APPS = [
@@ -34,9 +42,16 @@ export default function Apps() {
   const [newName, setNewName] = useState("");
   const [newUri, setNewUri] = useState("");
 
-  const maskSecret = (s: string) => s.slice(0, 8) + "•••••••••••••••" + s.slice(-4);
-  const toggleReveal = (id: string) => setRevealed(r => r.includes(id) ? r.filter(x => x !== id) : [...r, id]);
-  const copy = (text: string, label: string) => { navigator.clipboard.writeText(text); toast.success(`${label} copied`); };
+  const maskSecret = (s: string) =>
+    s.slice(0, 8) + "•••••••••••••••" + s.slice(-4);
+  const toggleReveal = (id: string) =>
+    setRevealed((r) =>
+      r.includes(id) ? r.filter((x) => x !== id) : [...r, id],
+    );
+  const copy = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied`);
+  };
 
   const createApp = () => {
     if (!newName.trim()) return;
@@ -51,7 +66,7 @@ export default function Apps() {
       createdAt: "Today",
       status: "active",
     };
-    setApps(a => [app, ...a]);
+    setApps((a) => [app, ...a]);
     setShowCreate(false);
     setNewName("");
     setNewUri("");
@@ -63,9 +78,15 @@ export default function Apps() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Applications</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">OAuth 2.0 applications and client credentials</p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            OAuth 2.0 applications and client credentials
+          </p>
         </div>
-        <button onClick={() => setShowCreate(true)} className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground text-xs font-semibold rounded-lg hover:opacity-90" data-testid="create-app">
+        <button
+          onClick={() => setShowCreate(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground text-xs font-semibold rounded-lg hover:opacity-90"
+          data-testid="create-app"
+        >
           <Plus className="w-3.5 h-3.5" /> New App
         </button>
       </div>
@@ -73,63 +94,157 @@ export default function Apps() {
       {showCreate && (
         <div className="bg-card border border-primary/30 rounded-xl p-5 space-y-4">
           <h3 className="font-semibold text-foreground">New Application</h3>
-          <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="App name" className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-sm text-foreground outline-none focus:border-primary" data-testid="app-name-input" />
-          <input value={newUri} onChange={e => setNewUri(e.target.value)} placeholder="Redirect URI (e.g. https://app.example.com/callback)" className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-sm text-foreground outline-none focus:border-primary" data-testid="redirect-uri-input" />
+          <input
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="App name"
+            className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-sm text-foreground outline-none focus:border-primary"
+            data-testid="app-name-input"
+          />
+          <input
+            value={newUri}
+            onChange={(e) => setNewUri(e.target.value)}
+            placeholder="Redirect URI (e.g. https://app.example.com/callback)"
+            className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-sm text-foreground outline-none focus:border-primary"
+            data-testid="redirect-uri-input"
+          />
           <div className="flex gap-2">
-            <button onClick={createApp} className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:opacity-90" data-testid="confirm-create-app">Create</button>
-            <button onClick={() => setShowCreate(false)} className="px-4 py-2 border border-border text-foreground text-sm rounded-lg hover:bg-muted">Cancel</button>
+            <button
+              onClick={createApp}
+              className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:opacity-90"
+              data-testid="confirm-create-app"
+            >
+              Create
+            </button>
+            <button
+              onClick={() => setShowCreate(false)}
+              className="px-4 py-2 border border-border text-foreground text-sm rounded-lg hover:bg-muted"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}
 
       <div className="space-y-4">
-        {apps.map(app => (
-          <div key={app.id} className="bg-card border border-border rounded-xl p-5 space-y-4" data-testid={`app-${app.id}`}>
+        {apps.map((app) => (
+          <div
+            key={app.id}
+            className="bg-card border border-border rounded-xl p-5 space-y-4"
+            data-testid={`app-${app.id}`}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-semibold text-foreground">{app.name}</p>
-                <p className="text-xs text-muted-foreground">Created {app.createdAt}</p>
+                <p className="text-xs text-muted-foreground">
+                  Created {app.createdAt}
+                </p>
               </div>
               <div className="flex items-center gap-1">
-                <span className="text-xs bg-green-500/10 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full">Active</span>
-                <button className="p-1.5 text-muted-foreground hover:text-destructive rounded transition-colors" onClick={() => setApps(a => a.filter(x => x.id !== app.id))} data-testid={`delete-app-${app.id}`}><Trash2 className="w-3.5 h-3.5" /></button>
+                <span className="text-xs bg-green-500/10 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full">
+                  Active
+                </span>
+                <button
+                  className="p-1.5 text-muted-foreground hover:text-destructive rounded transition-colors"
+                  onClick={() =>
+                    setApps((a) => a.filter((x) => x.id !== app.id))
+                  }
+                  data-testid={`delete-app-${app.id}`}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
 
             <div className="space-y-2 text-xs">
               {[
-                { label: "Client ID", value: app.clientId, mono: true, copyable: true },
+                {
+                  label: "Client ID",
+                  value: app.clientId,
+                  mono: true,
+                  copyable: true,
+                },
               ].map(({ label, value, mono, copyable }) => (
-                <div key={label} className="flex items-center justify-between gap-2">
-                  <span className="text-muted-foreground min-w-[100px]">{label}</span>
+                <div
+                  key={label}
+                  className="flex items-center justify-between gap-2"
+                >
+                  <span className="text-muted-foreground min-w-[100px]">
+                    {label}
+                  </span>
                   <div className="flex items-center gap-1 flex-1 min-w-0">
-                    <span className={`${mono ? "font-mono" : ""} text-foreground truncate`}>{value}</span>
-                    {copyable && <button onClick={() => copy(value, label)} className="p-1 text-muted-foreground hover:text-foreground"><Copy className="w-3 h-3" /></button>}
+                    <span
+                      className={`${mono ? "font-mono" : ""} text-foreground truncate`}
+                    >
+                      {value}
+                    </span>
+                    {copyable && (
+                      <button
+                        onClick={() => copy(value, label)}
+                        className="p-1 text-muted-foreground hover:text-foreground"
+                      >
+                        <Copy className="w-3 h-3" />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
 
               <div className="flex items-center justify-between gap-2">
-                <span className="text-muted-foreground min-w-[100px]">Client Secret</span>
+                <span className="text-muted-foreground min-w-[100px]">
+                  Client Secret
+                </span>
                 <div className="flex items-center gap-1 flex-1 min-w-0">
-                  <span className="font-mono text-foreground truncate">{revealed.includes(app.id) ? app.clientSecret : maskSecret(app.clientSecret)}</span>
-                  <button onClick={() => toggleReveal(app.id)} className="p-1 text-muted-foreground hover:text-foreground" data-testid={`reveal-secret-${app.id}`}>{revealed.includes(app.id) ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}</button>
-                  <button onClick={() => copy(app.clientSecret, "Client secret")} className="p-1 text-muted-foreground hover:text-foreground"><Copy className="w-3 h-3" /></button>
+                  <span className="font-mono text-foreground truncate">
+                    {revealed.includes(app.id)
+                      ? app.clientSecret
+                      : maskSecret(app.clientSecret)}
+                  </span>
+                  <button
+                    onClick={() => toggleReveal(app.id)}
+                    className="p-1 text-muted-foreground hover:text-foreground"
+                    data-testid={`reveal-secret-${app.id}`}
+                  >
+                    {revealed.includes(app.id) ? (
+                      <EyeOff className="w-3 h-3" />
+                    ) : (
+                      <Eye className="w-3 h-3" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => copy(app.clientSecret, "Client secret")}
+                    className="p-1 text-muted-foreground hover:text-foreground"
+                  >
+                    <Copy className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
             </div>
 
             <div>
-              <p className="text-xs text-muted-foreground mb-1.5">Redirect URIs</p>
-              {app.redirectUris.map(uri => (
-                <div key={uri} className="flex items-center gap-1.5 text-xs font-mono text-foreground bg-muted/50 px-3 py-1.5 rounded-lg">
-                  <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />{uri}
+              <p className="text-xs text-muted-foreground mb-1.5">
+                Redirect URIs
+              </p>
+              {app.redirectUris.map((uri) => (
+                <div
+                  key={uri}
+                  className="flex items-center gap-1.5 text-xs font-mono text-foreground bg-muted/50 px-3 py-1.5 rounded-lg"
+                >
+                  <ExternalLink className="w-3 h-3 text-muted-foreground shrink-0" />
+                  {uri}
                 </div>
               ))}
             </div>
 
             <div className="flex flex-wrap gap-1.5">
-              {app.scopes.map(s => <span key={s} className="text-xs font-mono bg-muted text-muted-foreground px-2 py-0.5 rounded">{s}</span>)}
+              {app.scopes.map((s) => (
+                <span
+                  key={s}
+                  className="text-xs font-mono bg-muted text-muted-foreground px-2 py-0.5 rounded"
+                >
+                  {s}
+                </span>
+              ))}
             </div>
           </div>
         ))}
