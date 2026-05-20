@@ -2,9 +2,26 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { HealthCheckResponse } from "@workspace/api-zod";
 
-const app = new Hono();
+type Bindings = {
+  SUPABASE_URL?: string;
+  SUPABASE_SERVICE_ROLE_KEY?: string;
+  SUPABASE_PUBLISHABLE_KEY?: string;
+  TERMII_API_KEY?: string;
+  TERMII_SENDER_ID?: string;
+};
 
-app.use("*", cors());
+const app = new Hono<{ Bindings: Bindings }>();
+
+app.use(
+  "*",
+  cors({
+    origin: "*",
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowHeaders: ["Content-Type", "Authorization", "X-Request-ID"],
+    exposeHeaders: ["X-Request-ID"],
+    maxAge: 86400,
+  }),
+);
 
 app.get("/api/healthz", (c) => {
   const data = HealthCheckResponse.parse({ status: "ok" });

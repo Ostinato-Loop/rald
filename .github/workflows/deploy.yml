@@ -21,9 +21,6 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Format check
-        run: bun run format --check || true
-
       - name: Lint
         run: bun run lint
 
@@ -50,6 +47,7 @@ jobs:
         env:
           PORT: "20261"
           BASE_PATH: "/"
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
 
@@ -75,10 +73,6 @@ jobs:
 
       - name: Install dependencies
         run: bun install
-
-      - name: Build API worker
-        run: bun run build
-        working-directory: artifacts/api-server
 
       - name: Deploy to Cloudflare Workers
         run: bunx wrangler deploy
