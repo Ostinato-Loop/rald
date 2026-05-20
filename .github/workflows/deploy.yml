@@ -45,7 +45,8 @@ jobs:
         run: bun install
 
       - name: Build frontend
-        run: bun --cwd artifacts/rald run build
+        run: bun run build
+        working-directory: artifacts/rald
         env:
           PORT: "20261"
           BASE_PATH: "/"
@@ -53,7 +54,8 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
 
       - name: Build API worker
-        run: bun --cwd artifacts/api-server run build
+        run: bun run build
+        working-directory: artifacts/api-server
 
   deploy:
     name: Deploy to Cloudflare Workers
@@ -71,16 +73,15 @@ jobs:
         run: bun install
 
       - name: Build API worker
-        run: bun --cwd artifacts/api-server run build
+        run: bun run build
+        working-directory: artifacts/api-server
 
       - name: Deploy to Cloudflare Workers
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: artifacts/api-server
-          command: deploy
+        run: bunx wrangler deploy
+        working-directory: artifacts/api-server
         env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
