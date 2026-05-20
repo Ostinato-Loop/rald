@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "export NODE_ENV=development && pnpm run build && pnpm run start",
     "build": "node ./build.mjs",
-    "start": "node --enable-source-maps ./dist/worker.mjs",
+    "start": "node --enable-source-maps ./dist/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "deploy": "wrangler deploy --env production"
   },
@@ -15,13 +15,12 @@
     "@hono/zod-validator": "^0.8.0",
     "@supabase/supabase-js": "2.106.0",
     "hono": "^4.12.19",
-    "zod": "^3.25.20"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260519.1",
-    "@types/node": "^22.0.0",
+    "@types/node": "catalog:",
     "esbuild": "0.27.3",
-    "typescript": "~5.9.3",
     "wrangler": "^4.92.0"
   }
 }
