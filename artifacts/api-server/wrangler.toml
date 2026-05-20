@@ -1,0 +1,9 @@
+name = "rald-api"
+main = "src/worker.ts"
+compatibility_date = "2025-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Routes / custom domains can be added later, e.g.:
+# routes = [
+#   { pattern = "api.example.com/*", zone_name = "example.com" }
+# ]
