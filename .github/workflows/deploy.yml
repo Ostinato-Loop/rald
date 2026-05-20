@@ -14,18 +14,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: oven-sh/setup-bun@v2
+      - uses: pnpm/action-setup@v4
         with:
-          bun-version: latest
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
 
       - name: Install dependencies
-        run: bun install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Lint
-        run: bun run lint
+        run: pnpm run lint
 
-      - name: Typecheck
-        run: bunx tsc --noEmit --project artifacts/rald/tsconfig.json
+      - name: Typecheck API
+        run: pnpm exec tsc --noEmit
+        working-directory: artifacts/api-server
+
+      - name: Typecheck Frontend
+        run: pnpm exec tsc --noEmit
+        working-directory: artifacts/rald
 
   build:
     name: Build
@@ -34,25 +44,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: oven-sh/setup-bun@v2
+      - uses: pnpm/action-setup@v4
         with:
-          bun-version: latest
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
 
       - name: Install dependencies
-        run: bun install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build frontend
-        run: bun run build
+        run: pnpm run build
         working-directory: artifacts/rald
         env:
           PORT: "20261"
           BASE_PATH: "/"
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
-          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
 
       - name: Build API worker
-        run: bun run build
+        run: pnpm run build
         working-directory: artifacts/api-server
 
   deploy:
@@ -63,27 +76,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-  with:
-    node-version: "22"
-    cache: "npm"
-
-      - uses: oven-sh/setup-bun@v2
+      - uses: pnpm/action-setup@v4
         with:
-          bun-version: latest
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
 
       - name: Install dependencies
-        run: bun install
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build API worker
+        run: pnpm run build
+        working-directory: artifacts/api-server
 
       - name: Deploy to Cloudflare Workers
-        run: bunx wrangler deploy
+        run: pnpm exec wrangler deploy --env production
         working-directory: artifacts/api-server
-        env: run: bunx wrangler deploy -
--env production
+        env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          TERMII_API_KEY: ${{ secrets.TERMII_API_KEY }}
-          TERMII_SENDER_ID: ${{ secrets.TERMII_SENDER_ID }}
