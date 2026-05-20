@@ -1,7 +1,8 @@
-name = "rald-api"
+name = "rald-auth"
 main = "src/worker.ts"
 compatibility_date = "2025-05-01"
 compatibility_flags = ["nodejs_compat"]
+account_id = "${{ env.CLOUDFLARE_ACCOUNT_ID }}"
 
 # Routes / custom domains can be added later, e.g.:
 # routes = [
