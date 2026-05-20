@@ -169,6 +169,9 @@ auth.post(
       user = existingUser;
     }
 
+    // Guard — both branches above either set user or return early
+    if (!user) return c.json({ error: "internal_error" }, 500);
+
     // Parse user agent
     const deviceInfo = parseUserAgent(ua);
 
