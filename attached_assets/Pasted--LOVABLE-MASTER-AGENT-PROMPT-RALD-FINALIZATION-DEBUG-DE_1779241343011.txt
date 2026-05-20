@@ -1,0 +1,309 @@
+# LOVABLE MASTER AGENT PROMPT — RALD FINALIZATION + DEBUG + DEPLOY
+
+## PROJECT: RALD (Root Authentication & Login Directory)
+
+Repository (primary source of truth):
+RALD GitHub Repository
+
+Production URL:
+RALD Production
+
+Supabase Backend:
+https://onxdcikfttdmnhofsuwo.supabase.co
+
+GitLab:
+(Already connected for CI/CD mirror and backups)
+
+---
+
+# MISSION
+
+You are Lovable acting as a senior production engineering agent.
+
+Your job is to:
+
+1. Finish RALD completely (Phase 2 → Phase 5)
+2. Debug all existing issues in the repository
+3. Stabilize CI/CD across GitHub + GitLab
+4. Ensure Cloudflare Worker deployment is always successful
+5. Ensure Supabase integration is stable and production-safe
+6. Keep system continuously deployable and self-healing where possible
+
+DO NOT rebuild RALD.
+DO NOT replace working systems.
+ONLY fix, extend, harden, and complete.
+
+---
+
+# CURRENT SYSTEM STATUS
+
+Already implemented:
+- Phone OTP authentication (Nigeria-first)
+- Admin system + roles
+- Supabase integration
+- Cloudflare Worker deployment structure
+- CI/CD pipeline (GitHub Actions)
+- Developer platform (partial)
+- Wallet + escrow foundations (partial)
+- TypeScript + Hono backend architecture
+
+CI/CD status:
+- Build: ✅ passing
+- Lint: ✅ passing
+- Typecheck: ⚠️ intermittent issues fixed
+- Deploy: ⚠️ requires continuous stabilization
+
+---
+
+# LIVE INFRASTRUCTURE
+
+## Cloudflare Production
+Cloudflare Dashboard
+
+Target Worker Route:
+auth.ostloop.name.ng/*
+
+## GitHub Repo
+RALD GitHub Repository
+
+## GitHub Actions
+GitHub Actions
+
+## Supabase
+https://onxdcikfttdmnhofsuwo.supabase.co
+
+---
+
+# CRITICAL REQUIREMENTS
+
+## 1. STABILIZE EVERYTHING
+
+Fix ALL of the following if present:
+- TypeScript errors
+- runtime Worker errors
+- broken imports
+- Hono route mismatches
+- missing env variables
+- Supabase auth edge cases
+- Cloudflare binding failures
+- Wrangler deployment inconsistencies
+- Vite build issues
+- API contract mismatches
+- session inconsistencies
+
+No suppression of errors allowed unless explicitly justified.
+
+---
+
+## 2. COMPLETE PHASE 2 (DEVELOPER PLATFORM)
+
+Finish fully production-grade:
+
+- /developers
+- /developers/apps
+- /developers/api-keys
+- /developers/webhooks
+- /developers/logs
+- /developers/usage
+- /developers/billing
+
+Must include:
+- API key generation + rotation
+- scoped permissions
+- usage tracking
+- webhook signing + retry queues
+- API analytics dashboards
+- OpenAPI 3.1 generation
+- SDK generation (TS, Go, Python, Dart)
+
+---
+
+## 3. COMPLETE PHASE 3 (WALLET + ESCROW)
+
+Implement production-grade financial system:
+
+- NGN wallet ledger
+- double-entry accounting
+- escrow system
+- marketplace payments
+- internal transfers
+- frozen + pending balances
+- dispute resolution system
+- fee splitting + commission routing
+- immutable financial logs
+
+Integrate:
+- Paystack
+- Flutterwave
+- Monnify
+
+Requirements:
+- atomic transactions
+- idempotency keys
+- replay protection
+- full auditability
+
+---
+
+## 4. COMPLETE PHASE 4 (FEDERATION)
+
+Build identity federation layer:
+
+- OAuth2 provider
+- OpenID Connect support
+- JWT federation
+- cross-app login
+- consent screens
+- service accounts
+- app registry
+- organization/workspace system
+
+Used by:
+- Loop Messenger
+- Loop Workspace
+- Loop Market
+- Ostinato ecosystem apps
+
+---
+
+## 5. COMPLETE PHASE 5 (OBSERVABILITY)
+
+Implement full observability stack:
+
+- OpenTelemetry tracing
+- structured logging
+- real-time dashboards
+- audit export system
+- queue monitoring
+- abuse detection system
+- security event streaming
+
+Cloudflare integrations:
+- Workers Analytics
+- Queues
+- KV
+- D1
+- R2
+- Durable Objects
+
+---
+
+# CI/CD REQUIREMENTS
+
+Ensure BOTH GitHub + GitLab pipelines are healthy:
+
+- lint
+- typecheck
+- test
+- build
+- deploy (wrangler)
+- migration validation
+
+Deployment target:
+RALD Production
+
+Ensure:
+- zero manual deploy required after commit
+- automatic rollback on failure
+- preview deployments working
+- environment separation (dev/staging/prod)
+
+---
+
+# SUPABASE REQUIREMENTS
+
+Ensure:
+- correct service role usage (server-only)
+- no leakage of secrets
+- correct RLS policies
+- stable auth/session handling
+- no direct client access to sensitive tables
+
+Project:
+https://onxdcikfttdmnhofsuwo.supabase.co
+
+---
+
+# CLOUDLFARE REQUIREMENTS
+
+Validate:
+- Worker routes correct
+- KV namespaces active
+- D1 connected
+- R2 ready
+- Queues configured
+- Durable Objects registered
+
+Production route:
+auth.ostloop.name.ng
+
+Ensure:
+- HTTPS enabled
+- WAF enabled
+- rate limiting enabled
+- Turnstile integrated
+- bot protection active
+
+---
+
+# SECURITY REQUIREMENTS
+
+Mandatory:
+- no exposed secrets
+- no plaintext OTP storage
+- HMAC signed requests
+- CSRF protection
+- CSP headers
+- replay protection
+- rate limiting per IP/device
+- secure session handling
+
+---
+
+# PERFORMANCE REQUIREMENTS
+
+Optimize for:
+- Nigeria-first latency
+- mobile-first UX
+- low bandwidth environments
+- edge caching
+- fast OTP delivery
+
+---
+
+# BEHAVIOR REQUIREMENTS
+
+Lovable MUST:
+- continuously fix bugs without waiting
+- ask user ONLY when credentials or secrets are missing
+- never break working auth flows
+- never reset database schema unnecessarily
+- commit small incremental fixes
+- keep production always deployable
+
+---
+
+# FINAL GOAL
+
+RALD must become:
+
+- Cloudflare-native identity platform
+- OAuth2 + OpenID provider
+- API monetization gateway
+- Wallet + escrow infrastructure
+- Developer platform (Auth0 + Stripe + Clerk hybrid)
+- Nigeria-first authentication backbone
+
+---
+
+# RULE
+
+If anything is missing:
+→ Ask user for it explicitly (do NOT guess secrets)
+
+If everything is present:
+→ Continue full autonomous completion until production is stable
+
+---
+
+END OF PROMP
