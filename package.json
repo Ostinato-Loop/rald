@@ -4,13 +4,13 @@
   "license": "MIT",
   "scripts": {
     "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*|bun/*) ;; *) echo \"Use pnpm or bun\" >&2; exit 1 ;; esac'",
-    "build": "bun run build:api",
+    "build": "pnpm --filter @workspace/api-server run build",
+    "build:frontend": "pnpm --filter @workspace/rald run build",
+    "build:api": "pnpm --filter @workspace/api-server run build",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
     "lint": "eslint .",
-    "format": "prettier --write .",
-    "build:frontend": "cd artifacts/rald && bun run build",
-    "build:api": "cd artifacts/api-server && bun run build"
+    "format": "prettier --write ."
   },
   "private": true,
   "devDependencies": {
