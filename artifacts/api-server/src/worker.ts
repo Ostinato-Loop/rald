@@ -2,12 +2,14 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
-import { HealthCheckResponse } from "@workspace/api-zod";
+import { z } from "zod";
 import type { Env } from "./lib/supabase";
 import authRoutes from "./routes/auth";
 import usersRoutes from "./routes/users";
 import oauthRoutes from "./routes/oauth";
 import adminRoutes from "./routes/admin";
+
+const HealthCheckResponse = z.object({ status: z.string() });
 
 const app = new Hono<{ Bindings: Env }>();
 
