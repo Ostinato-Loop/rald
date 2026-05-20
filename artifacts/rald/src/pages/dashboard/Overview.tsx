@@ -2,8 +2,24 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Shield, MonitorSmartphone, Key, Wallet, Activity, ArrowUpRight, ArrowDownRight, Clock } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { apiCall } from "@/lib/api";
+import { apiCall, fmt } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
+
+interface SessionData {
+  sessions?: number;
+  security?: string;
+  apiUsage?: number;
+  walletBalance?: number;
+}
+
+interface ActivityItem {
+  id: number | string;
+  event: string;
+  device: string;
+  time: string;
+  type: string;
+  amount?: string;
+}
 
 const MOCK_DATA = {
   sessions: 3,
@@ -16,7 +32,7 @@ const MOCK_DATA = {
     { id: 3, event: "Wallet funded", device: "Paystack", time: "3 hr ago", type: "wallet", amount: "+₦50,000" },
     { id: 4, event: "Session revoked", device: "Firefox · Windows", time: "1 day ago", type: "security" },
     { id: 5, event: "Password changed", device: "Chrome · Android", time: "2 days ago", type: "security" },
-  ],
+  ] as ActivityItem[],
 };
 
 function StatCard({ icon: Icon, label, value, sub, color }: {
@@ -41,13 +57,35 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
 export default function Overview() {
   const { user } = useAuth();
 
-  const { data, isLoading } = useQuery({
+  const { data: sessionData, isLoading: sessionLoading } = useQuery<SessionData>({
     queryKey: ["dashboard-overview"],
-    queryFn: () => apiCall("/session"),
-    retry: false,
+    queryFn: () => apiCall<SessionData>("/session"),
+    retry: 1,
+    staleTime: 30_000,
   });
 
-  const stats = MOCK_DATA;
+  const { data: activityData, isLoading: activityLoading } = useQuery<{ activities?: ActivityItem[] }>({
+    queryKey: ["activity"],
+    queryFn: () => apiCall<{ activities?: ActivityItem[] }>("/activity"),
+    retry: 1,
+    staleTime: 15_000,
+  });
+
+  const { data: walletData } = useQuery<{ balance?: number }>({
+    queryKey: ["wallet-balance"],
+    queryFn: () => apiCall<{ balance?: number }>("/wallet"),
+    retry: 1,
+    staleTime: 30_000,
+  });
+
+  const stats = {
+    sessions: sessionData?.sessions ?? MOCK_DATA.sessions,
+    security: sessionData?.security ?? MOCK_DATA.security,
+    apiUsage: sessionData?.apiUsage ?? MOCK_DATA.apiUsage,
+    walletBalance: walletData?.balance ?? MOCK_DATA.walletBalance,
+  };
+
+  const activities: ActivityItem[] = activityData?.activities ?? MOCK_DATA.activities;
 
   const container = {
     hidden: {},
@@ -58,124 +96,104 @@ export default function Overview() {
     show: { opacity: 1, y: 0 },
   };
 
+  const isLoading = sessionLoading || activityLoading;
+
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* Header */}
+    <div className="max-w-5xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">
-          {user?.name ? `Welcome back, ${user.name.split(" ")[0]}` : "Dashboard"}
+          Welcome back{user?.name ? `, ${user.name.split(" ")[0]}` : ""}
         </h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Here's an overview of your RALD account</p>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          Here's what's happening with your RALD account
+        </p>
       </div>
 
-      {/* Stats grid */}
-      <motion.div
-        variants={container}
-        initial="hidden"
-        animate="show"
-        className="grid grid-cols-2 lg:grid-cols-4 gap-4"
-      >
-        <motion.div variants={item}>
-          {isLoading ? <Skeleton className="h-28 rounded-xl" /> : (
-            <StatCard icon={MonitorSmartphone} label="Active Sessions" value={stats.sessions} sub="Across all devices" />
-          )}
+      {isLoading ? (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1,2,3,4].map(i => <Skeleton key={i} className="h-28 rounded-xl" />)}
+        </div>
+      ) : (
+        <motion.div
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+        >
+          {[
+            { icon: MonitorSmartphone, label: "Active Sessions", value: stats.sessions, sub: "Devices logged in", color: "bg-blue-500" },
+            { icon: Shield, label: "Security Status", value: stats.security === "strong" ? "Strong" : "Review needed", sub: "No threats detected", color: "bg-green-500" },
+            { icon: Key, label: "API Usage", value: stats.apiUsage.toLocaleString(), sub: "Requests this month", color: "bg-purple-500" },
+            { icon: Wallet, label: "Wallet Balance", value: fmt.ngn(stats.walletBalance), sub: "Available balance", color: "bg-primary" },
+          ].map(props => (
+            <motion.div key={props.label} variants={item}>
+              <StatCard {...props} />
+            </motion.div>
+          ))}
         </motion.div>
-        <motion.div variants={item}>
-          {isLoading ? <Skeleton className="h-28 rounded-xl" /> : (
-            <StatCard icon={Shield} label="Security Status" value="Strong" sub="No threats detected" color="bg-green-500" />
-          )}
-        </motion.div>
-        <motion.div variants={item}>
-          {isLoading ? <Skeleton className="h-28 rounded-xl" /> : (
-            <StatCard icon={Key} label="API Requests" value={stats.apiUsage.toLocaleString()} sub="Last 30 days" />
-          )}
-        </motion.div>
-        <motion.div variants={item}>
-          {isLoading ? <Skeleton className="h-28 rounded-xl" /> : (
-            <StatCard icon={Wallet} label="Wallet Balance" value={`₦${stats.walletBalance.toLocaleString()}`} sub="NGN · Available" color="bg-blue-500" />
-          )}
-        </motion.div>
-      </motion.div>
+      )}
+
+      {/* Phone identity card */}
+      <div className="bg-card border border-border rounded-xl p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-foreground">Identity</h3>
+          <span className="text-xs bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 px-2 py-0.5 rounded-full font-medium">
+            Verified
+          </span>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
+            {(user?.name || user?.phone || "RA").split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)}
+          </div>
+          <div>
+            <p className="font-semibold text-foreground">{user?.name || "RALD User"}</p>
+            <p className="text-sm text-muted-foreground font-mono">{user?.phone || "+234 —"}</p>
+            {user?.email && <p className="text-xs text-muted-foreground">{user.email}</p>}
+          </div>
+          <div className="ml-auto text-right">
+            <p className="text-xs text-muted-foreground">Account ID</p>
+            <p className="text-xs font-mono text-foreground">{user?.id || "rald_usr_demo"}</p>
+          </div>
+        </div>
+      </div>
 
       {/* Activity feed */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-card border border-border rounded-xl"
-        >
-          <div className="flex items-center justify-between p-5 border-b border-border">
-            <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-muted-foreground" />
-              <h3 className="font-semibold text-foreground text-sm">Recent Activity</h3>
-            </div>
-            <span className="text-xs text-muted-foreground">Last 7 days</span>
-          </div>
-          <div className="divide-y divide-border">
-            {stats.activities.map(a => (
-              <div key={a.id} className="flex items-start gap-3 px-5 py-3.5" data-testid={`activity-${a.id}`}>
-                <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${
-                  a.type === "login" ? "bg-blue-500" :
-                  a.type === "wallet" ? "bg-green-500" :
-                  a.type === "key" ? "bg-yellow-500" : "bg-muted-foreground"
-                }`} />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-foreground">{a.event}</p>
-                  <p className="text-xs text-muted-foreground">{a.device}</p>
+      <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-foreground">Recent Activity</h3>
+          <Activity className="w-4 h-4 text-muted-foreground" />
+        </div>
+        <div className="space-y-3">
+          {isLoading ? (
+            [1,2,3].map(i => <Skeleton key={i} className="h-12 rounded-lg" />)
+          ) : activities.map((a) => (
+            <div key={a.id} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                a.type === "login" ? "bg-blue-500/10" :
+                a.type === "wallet" ? "bg-green-500/10" :
+                a.type === "key" ? "bg-purple-500/10" : "bg-orange-500/10"
+              }`}>
+                {a.type === "login" ? <MonitorSmartphone className="w-4 h-4 text-blue-500" /> :
+                 a.type === "wallet" ? (
+                   a.amount?.startsWith("+") ? <ArrowUpRight className="w-4 h-4 text-green-500" /> : <ArrowDownRight className="w-4 h-4 text-red-500" />
+                 ) :
+                 a.type === "key" ? <Key className="w-4 h-4 text-purple-500" /> :
+                 <Shield className="w-4 h-4 text-orange-500" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">{a.event}</p>
+                <p className="text-xs text-muted-foreground truncate">{a.device}</p>
+              </div>
+              <div className="text-right shrink-0">
+                {a.amount && <p className={`text-sm font-semibold ${a.amount.startsWith("+") ? "text-green-500" : "text-red-500"}`}>{a.amount}</p>}
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Clock className="w-3 h-3" />
+                  {a.time}
                 </div>
-                <div className="text-right shrink-0">
-                  {a.amount && <p className="text-sm font-semibold text-green-500">{a.amount}</p>}
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Clock className="w-3 h-3" />{a.time}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Identity summary */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-          className="bg-card border border-border rounded-xl p-5 space-y-5"
-        >
-          <h3 className="font-semibold text-foreground text-sm">Identity Summary</h3>
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
-              {user?.name?.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "RA"}
-            </div>
-            <div>
-              <p className="font-semibold text-foreground">{user?.name || "RALD User"}</p>
-              <p className="text-sm text-muted-foreground">{user?.phone || "+234 800 000 0000"}</p>
-              <div className="flex items-center gap-1 mt-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                <span className="text-xs text-muted-foreground">Active · Verified</span>
               </div>
             </div>
-          </div>
-
-          <div className="space-y-3">
-            {[
-              { label: "Account ID", value: user?.id || "rald_usr_demo" },
-              { label: "Email", value: user?.email || "Not set" },
-              { label: "Role", value: user?.role || "User" },
-              { label: "Member since", value: "May 2026" },
-            ].map(({ label, value }) => (
-              <div key={label} className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">{label}</span>
-                <span className="font-medium text-foreground text-right font-mono text-xs max-w-[160px] truncate">{value}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-2">
-            <Shield className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" />
-            <p className="text-xs text-green-700 dark:text-green-300 font-medium">Your account is secured with OTP verification</p>
-          </div>
-        </motion.div>
+          ))}
+        </div>
       </div>
     </div>
   );

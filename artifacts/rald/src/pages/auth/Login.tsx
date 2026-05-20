@@ -77,8 +77,11 @@ export default function Login() {
     setGlowState("loading");
     setError("");
     try {
-      const data = await apiCall("/login/verify-otp", { method: "POST", body: JSON.stringify({ phone, otp }) });
-      login(data.user || MOCK_USER);
+      const data = await apiCall<{ user?: typeof MOCK_USER; token?: string; access_token?: string }>(
+        "/login/verify-otp", { method: "POST", body: JSON.stringify({ phone, otp }) }
+      );
+      const user = data.user || MOCK_USER;
+      login({ ...user, token: data.token || data.access_token });
     } catch {
       login(MOCK_USER);
     }
@@ -96,8 +99,11 @@ export default function Login() {
     setGlowState("loading");
     setError("");
     try {
-      const data = await apiCall("/login/password", { method: "POST", body: JSON.stringify({ phone, password }) });
-      login(data.user || MOCK_USER);
+      const data = await apiCall<{ user?: typeof MOCK_USER; token?: string; access_token?: string }>(
+        "/login/password", { method: "POST", body: JSON.stringify({ phone, password }) }
+      );
+      const user = data.user || MOCK_USER;
+      login({ ...user, token: data.token || data.access_token });
     } catch {
       login(MOCK_USER);
     }

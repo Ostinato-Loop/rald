@@ -1,4 +1,5 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import type { Variants } from "framer-motion";
 import { ReactNode } from "react";
 
 export type GlowState = "default" | "loading" | "error" | "success";
@@ -16,15 +17,15 @@ const glowStyles: Record<GlowState, string> = {
   success: "border-green-500 shadow-[0_0_0_1px_rgba(34,197,94,0.4),0_0_20px_rgba(34,197,94,0.2)]",
 };
 
-const shakeVariants = {
+const shakeVariants: Variants = {
   shake: {
     x: [0, -8, 8, -6, 6, -4, 4, 0],
-    transition: { duration: 0.5, ease: "easeInOut" },
+    transition: { duration: 0.5, ease: [0.36, 0.07, 0.19, 0.97] },
   },
   idle: { x: 0 },
 };
 
-const pulseVariants = {
+const pulseVariants: Variants = {
   pulse: {
     boxShadow: [
       "0 0 0 1px rgba(251,191,36,0.4), 0 0 20px rgba(251,191,36,0.2)",
@@ -36,7 +37,7 @@ const pulseVariants = {
   idle: {},
 };
 
-const successPulse = {
+const successPulse: Variants = {
   pulse: {
     boxShadow: [
       "0 0 0 1px rgba(34,197,94,0.4), 0 0 20px rgba(34,197,94,0.2)",
@@ -49,31 +50,14 @@ const successPulse = {
 };
 
 export function GlowBox({ state = "default", children, className = "" }: GlowBoxProps) {
+  const animate = state === "error" ? "shake" : state === "loading" || state === "success" ? "pulse" : "idle";
+  const variants = state === "error" ? shakeVariants : state === "loading" ? pulseVariants : state === "success" ? successPulse : undefined;
+
   return (
     <motion.div
-      animate={
-        state === "error"
-          ? "shake"
-          : state === "loading"
-          ? "pulse"
-          : state === "success"
-          ? "pulse"
-          : "idle"
-      }
-      variants={
-        state === "error"
-          ? shakeVariants
-          : state === "loading"
-          ? pulseVariants
-          : state === "success"
-          ? successPulse
-          : {}
-      }
-      className={`
-        relative rounded-xl border bg-card transition-all duration-300
-        ${glowStyles[state]}
-        ${className}
-      `}
+      animate={animate}
+      variants={variants}
+      className={`relative rounded-xl border bg-card transition-all duration-300 ${glowStyles[state]} ${className}`}
       data-testid="glow-box"
       data-state={state}
     >
