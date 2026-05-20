@@ -47,8 +47,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         className="hidden md:flex flex-col bg-sidebar border-r border-sidebar-border h-full relative z-20 overflow-hidden"
       >
         <div className="flex items-center h-16 px-4 border-b border-sidebar-border shrink-0 gap-3">
-          <div className="w-8 h-8 rounded-lg bg-destructive flex items-center justify-center shrink-0">
-            <Shield className="w-4 h-4 text-white" />
+          <div className="flex items-center justify-center shrink-0 bg-white rounded-lg px-2 py-1 shadow-sm">
+            <img src="/rald-logo.png" alt="RALD" className={`w-auto transition-all duration-200 ${collapsed ? "h-4" : "h-5"}`} />
           </div>
           <AnimatePresence>
             {!collapsed && (

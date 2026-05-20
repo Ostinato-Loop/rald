@@ -138,10 +138,11 @@ export default function Login() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
         >
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-primary mb-4 shadow-lg shadow-primary/25">
-            <Shield className="w-6 h-6 text-primary-foreground" />
+          <div className="inline-flex items-center justify-center mb-4">
+            <div className="bg-white rounded-2xl px-5 py-2.5 shadow-lg shadow-black/20">
+              <img src="/rald-logo.png" alt="RALD" className="h-10 w-auto" />
+            </div>
           </div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">RALD</h1>
           <p className="text-xs text-muted-foreground mt-1 font-medium tracking-widest uppercase">Root Authentication & Login Directory</p>
         </motion.div>
 

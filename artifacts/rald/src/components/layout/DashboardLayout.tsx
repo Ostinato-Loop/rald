@@ -61,21 +61,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Logo */}
         <div className="flex items-center h-16 px-4 border-b border-sidebar-border shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
-              <Shield className="w-4 h-4 text-primary-foreground" />
+            <div className="flex items-center justify-center shrink-0 bg-white rounded-lg px-2 py-1 shadow-sm">
+              <img src="/rald-logo.png" alt="RALD" className={`w-auto transition-all duration-200 ${collapsed ? "h-4" : "h-5"}`} />
             </div>
-            <AnimatePresence>
-              {!collapsed && (
-                <motion.span
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: "auto" }}
-                  exit={{ opacity: 0, width: 0 }}
-                  className="font-bold text-sidebar-foreground text-sm overflow-hidden whitespace-nowrap"
-                >
-                  RALD
-                </motion.span>
-              )}
-            </AnimatePresence>
           </div>
         </div>
 

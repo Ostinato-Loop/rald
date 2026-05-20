@@ -58,8 +58,8 @@ export default function OAuthConsent() {
             <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
             <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
           </div>
-          <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-            <Shield className="w-6 h-6 text-primary-foreground" />
+          <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-sm overflow-hidden p-1.5">
+            <img src="/rald-logo.png" alt="RALD" className="h-full w-auto object-contain" />
           </div>
         </div>
 
