@@ -15,7 +15,6 @@ env:
   PNPM_VERSION: "10"
   NODE_VERSION: "22"
 
-# ── Reusable setup steps (used as composite via run blocks) ───────────────────
 jobs:
   # ── 1. TypeCheck ─────────────────────────────────────────────────────────────
   typecheck:
@@ -36,12 +35,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      # lib/api-zod uses "composite: true" — must be built before api-server can
-      # typecheck against its generated .d.ts files
-      - name: Build shared lib — api-zod
-        run: pnpm exec tsc -p lib/api-zod/tsconfig.json
-
-      - name: TypeCheck — API (zero errors expected)
+      - name: TypeCheck — API
         run: pnpm --filter @workspace/api-server run typecheck
 
       - name: TypeCheck — Frontend
@@ -66,9 +60,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
-
-      - name: Build lib — api-zod
-        run: pnpm exec tsc -p lib/api-zod/tsconfig.json
 
       - name: Build Cloudflare Worker (dist/worker.mjs)
         run: pnpm --filter @workspace/api-server run build
@@ -135,9 +126,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
-
-      - name: Build lib — api-zod
-        run: pnpm exec tsc -p lib/api-zod/tsconfig.json
 
       - name: Build worker for deploy
         run: pnpm --filter @workspace/api-server run build
