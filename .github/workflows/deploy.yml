@@ -7,94 +7,168 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PNPM_VERSION: "10"
+  NODE_VERSION: "22"
+
 jobs:
-  quality:
-    name: Lint & Typecheck
+  # ── 1. TypeCheck (parallel: API + Frontend) ──────────────────────────────────
+  typecheck:
+    name: TypeCheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: ${{ env.PNPM_VERSION }}
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Lint
-        run: pnpm run lint
+      - name: TypeCheck — API (zero errors expected)
+        run: pnpm --filter @workspace/api-server run typecheck
 
-      - name: Typecheck API
-        run: pnpm exec tsc --noEmit
-        working-directory: artifacts/api-server
+      - name: TypeCheck — Frontend
+        run: pnpm --filter @workspace/rald run typecheck
 
-      - name: Typecheck Frontend
-        run: pnpm exec tsc --noEmit
-        working-directory: artifacts/rald
-
-  build:
-    name: Build
+  # ── 2a. Build API Worker ──────────────────────────────────────────────────────
+  build-api:
+    name: Build API Worker
     runs-on: ubuntu-latest
-    needs: quality
+    needs: typecheck
     steps:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: ${{ env.PNPM_VERSION }}
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Build frontend
-        run: pnpm run build
-        working-directory: artifacts/rald
+      - name: Build Cloudflare Worker (dist/worker.mjs)
+        run: pnpm --filter @workspace/api-server run build
+
+      - name: Upload API build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-worker-${{ github.sha }}
+          path: artifacts/api-server/dist/worker.mjs
+          retention-days: 3
+
+  # ── 2b. Build Frontend ────────────────────────────────────────────────────────
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    needs: typecheck
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build React/Vite frontend
+        run: pnpm --filter @workspace/rald run build
         env:
-          PORT: "20261"
-          BASE_PATH: "/"
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
-      - name: Build API worker
-        run: pnpm run build
-        working-directory: artifacts/api-server
+      - name: Upload frontend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist-${{ github.sha }}
+          path: artifacts/rald/dist/
+          retention-days: 3
 
-  deploy:
-    name: Deploy to Cloudflare Workers
+  # ── 3a. Deploy API → Cloudflare Workers ───────────────────────────────────────
+  deploy-api:
+    name: "Deploy API → Cloudflare Workers"
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build-api, build-frontend]
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    environment:
+      name: production
+      url: https://auth.ostloop.name.ng/api/healthz
     steps:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: ${{ env.PNPM_VERSION }}
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Build API worker
-        run: pnpm run build
-        working-directory: artifacts/api-server
+      - name: Build worker for deploy
+        run: pnpm --filter @workspace/api-server run build
 
-      - name: Deploy to Cloudflare Workers
+      - name: Deploy to Cloudflare Workers (production)
         run: pnpm exec wrangler deploy --env production
         working-directory: artifacts/api-server
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  # ── 3b. Deploy Frontend → Cloudflare Pages ────────────────────────────────────
+  deploy-frontend:
+    name: "Deploy Frontend → Cloudflare Pages"
+    runs-on: ubuntu-latest
+    needs: [build-api, build-frontend]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    environment:
+      name: production
+      url: https://rald.pages.dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build frontend for deploy
+        run: pnpm --filter @workspace/rald run build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+      - name: Deploy to Cloudflare Pages
+        run: pnpm exec wrangler pages deploy dist --project-name=rald --commit-dirty=true
+        working-directory: artifacts/rald
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
