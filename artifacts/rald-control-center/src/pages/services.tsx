@@ -6,11 +6,11 @@ import { RotateCw, Activity, ExternalLink } from "lucide-react";
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
-    running: "text-primary border-primary/30 bg-primary/10",
     healthy: "text-primary border-primary/30 bg-primary/10",
     degraded: "text-yellow-400 border-yellow-400/30 bg-yellow-400/10",
-    stopped: "text-muted-foreground border-border bg-muted/50",
-    failed: "text-destructive border-destructive/30 bg-destructive/10",
+    down: "text-destructive border-destructive/30 bg-destructive/10",
+    deploying: "text-blue-400 border-blue-400/30 bg-blue-400/10",
+    unknown: "text-muted-foreground border-border bg-muted/50",
   };
   return (
     <span className={`px-2 py-0.5 text-xs font-medium uppercase tracking-wider border ${map[status] || "text-muted-foreground border-border"}`}>
@@ -50,7 +50,7 @@ export default function Services() {
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground border border-border px-3 py-1.5">
           <Activity className="w-3.5 h-3.5 text-primary" />
-          <span className="font-mono">{services?.filter(s => s.status === "running").length || 0} running</span>
+          <span className="font-mono">{services?.filter(s => s.status === "healthy").length || 0} healthy</span>
         </div>
       </div>
 
@@ -63,7 +63,7 @@ export default function Services() {
             <div className="border border-border">
               <div className="grid grid-cols-12 text-xs font-medium uppercase tracking-widest text-muted-foreground px-4 py-2 border-b border-border bg-muted/30">
                 <div className="col-span-3">Service</div>
-                <div className="col-span-2">Type</div>
+                <div className="col-span-2">Slug</div>
                 <div className="col-span-2">Status</div>
                 <div className="col-span-2">Version</div>
                 <div className="col-span-2">Region</div>
@@ -79,7 +79,7 @@ export default function Services() {
                       </a>
                     )}
                   </div>
-                  <div className="col-span-2 text-muted-foreground text-xs uppercase">{svc.type}</div>
+                  <div className="col-span-2 text-muted-foreground text-xs font-mono">{svc.slug}</div>
                   <div className="col-span-2"><StatusBadge status={svc.status} /></div>
                   <div className="col-span-2 font-mono text-xs text-muted-foreground">{svc.version || "—"}</div>
                   <div className="col-span-2 text-xs text-muted-foreground">{svc.region || "—"}</div>

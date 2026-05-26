@@ -10,9 +10,16 @@ const PRODUCT_COLORS: Record<string, string> = {
   "gitrald": "#EF4444",
 };
 
-function ProductCard({ product }: { product: { id: string; name: string; slug: string; tagline: string; status: string; version: string; url?: string | null } }) {
-  const color = PRODUCT_COLORS[product.slug] || "#6366F1";
+type Product = {
+  id: string; name: string; slug: string; tagline: string;
+  domain: string; color: string; status: string;
+  servicesCount: number; activeUsers?: number | null; mrr?: number | null;
+};
+
+function ProductCard({ product }: { product: Product }) {
+  const color = PRODUCT_COLORS[product.slug] || product.color || "#6366F1";
   const { data: stats } = useGetProductStats(product.slug);
+  const domain = product.domain ? `https://${product.domain}` : null;
 
   return (
     <div className="border border-border bg-card hover:border-border/80 transition-colors relative overflow-hidden">
@@ -28,17 +35,17 @@ function ProductCard({ product }: { product: { id: string; name: string; slug: s
               className="px-2 py-0.5 text-xs font-medium uppercase tracking-wider border"
               style={{ color, borderColor: `${color}44`, backgroundColor: `${color}11` }}
             >
-              {product.status}
+              {product.status.replace("_", " ")}
             </span>
-            {product.url && (
-              <a href={product.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+            {domain && (
+              <a href={domain} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             )}
           </div>
         </div>
 
-        <div className="text-xs font-mono text-muted-foreground mb-4">{product.version}</div>
+        <div className="text-xs font-mono text-muted-foreground mb-4">{product.domain || product.slug}</div>
 
         {stats && (
           <div className="grid grid-cols-3 gap-2 border-t border-border pt-3 mt-3">
@@ -53,15 +60,15 @@ function ProductCard({ product }: { product: { id: string; name: string; slug: s
               <div className="flex items-center justify-center mb-1">
                 <Activity className="w-3 h-3 text-muted-foreground" />
               </div>
-              <div className="text-sm font-bold text-foreground">{stats.requestsToday?.toLocaleString() || "—"}</div>
-              <div className="text-xs text-muted-foreground">Requests</div>
+              <div className="text-sm font-bold text-foreground">{stats.deployments30d?.toLocaleString() || "—"}</div>
+              <div className="text-xs text-muted-foreground">Deploys/30d</div>
             </div>
             <div className="text-center">
               <div className="flex items-center justify-center mb-1">
                 <TrendingUp className="w-3 h-3 text-muted-foreground" />
               </div>
               <div className="text-sm font-bold" style={{ color }}>
-                {stats.uptime || "—"}
+                {stats.uptime30d != null ? `${stats.uptime30d}%` : "—"}
               </div>
               <div className="text-xs text-muted-foreground">Uptime</div>
             </div>
@@ -94,13 +101,13 @@ export default function Products() {
         <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Product Registry</h2>
         <div className="space-y-2">
           {products?.map(p => {
-            const color = PRODUCT_COLORS[p.slug] || "#6366F1";
+            const color = PRODUCT_COLORS[p.slug] || p.color || "#6366F1";
             return (
               <div key={p.id} className="flex items-center gap-3 text-xs">
                 <div className="w-2 h-2 flex-shrink-0" style={{ backgroundColor: color }} />
                 <span className="font-mono text-muted-foreground w-32 flex-shrink-0">{p.slug}</span>
                 <span className="text-foreground">{p.name}</span>
-                <span className="text-muted-foreground ml-auto">{p.version}</span>
+                <span className="text-muted-foreground ml-auto">{p.domain || "—"}</span>
               </div>
             );
           })}

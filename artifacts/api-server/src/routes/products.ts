@@ -13,9 +13,10 @@ router.get("/", async (_req, res) => {
 });
 
 router.get("/:slug/stats", async (req, res) => {
-  const [product] = await db.select().from(productsTable).where(eq(productsTable.slug, req.params.slug)).limit(1);
+  const slug = String(req.params.slug);
+  const [product] = await db.select().from(productsTable).where(eq(productsTable.slug, slug)).limit(1);
   if (!product) return res.status(404).json({ error: "Product not found" });
-  const deployments = await db.select().from(deploymentsTable).where(eq(deploymentsTable.product, req.params.slug));
+  const deployments = await db.select().from(deploymentsTable).where(eq(deploymentsTable.product, slug));
   const recent = deployments.slice(-5).reverse();
   return res.json({
     slug: product.slug,

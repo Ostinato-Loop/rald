@@ -7,21 +7,23 @@ import { Rocket, Clock, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     success: "text-primary border-primary/30 bg-primary/10",
-    running: "text-blue-400 border-blue-400/30 bg-blue-400/10",
+    deploying: "text-blue-400 border-blue-400/30 bg-blue-400/10",
+    building: "text-blue-400 border-blue-400/30 bg-blue-400/10",
     pending: "text-yellow-400 border-yellow-400/30 bg-yellow-400/10",
     failed: "text-destructive border-destructive/30 bg-destructive/10",
-    cancelled: "text-muted-foreground border-border",
+    rolled_back: "text-muted-foreground border-border",
   };
   const icons: Record<string, React.ElementType> = {
     success: CheckCircle2,
-    running: Loader2,
+    deploying: Loader2,
+    building: Loader2,
     pending: Clock,
     failed: XCircle,
   };
   const Icon = icons[status];
   return (
     <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium uppercase tracking-wider border ${map[status] || "text-muted-foreground border-border"}`}>
-      {Icon && <Icon className={`w-3 h-3 ${status === "running" ? "animate-spin" : ""}`} />}
+      {Icon && <Icon className={`w-3 h-3 ${status === "deploying" || status === "building" ? "animate-spin" : ""}`} />}
       {status}
     </span>
   );
@@ -32,7 +34,7 @@ export default function Deployments() {
   const { data: services } = useListServices();
   const queryClient = useQueryClient();
 
-  const [form, setForm] = useState({ serviceId: "", environment: "production", version: "" });
+  const [form, setForm] = useState({ product: "", service: "", branch: "main", commitMessage: "" });
   const [showForm, setShowForm] = useState(false);
 
   const triggerMutation = useTriggerDeployment({
@@ -40,7 +42,7 @@ export default function Deployments() {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListDeploymentsQueryKey() });
         setShowForm(false);
-        setForm({ serviceId: "", environment: "production", version: "" });
+        setForm({ product: "", service: "", branch: "main", commitMessage: "" });
       },
     },
   });
@@ -67,40 +69,38 @@ export default function Deployments() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              triggerMutation.mutate({ data: form });
+              triggerMutation.mutate({ data: { product: form.product, service: form.service, branch: form.branch, commitMessage: form.commitMessage || undefined } });
             }}
             className="grid grid-cols-3 gap-4"
           >
             <div>
+              <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Product</label>
+              <input
+                value={form.product}
+                onChange={(e) => setForm({ ...form, product: e.target.value })}
+                placeholder="e.g. loop-business"
+                className="w-full bg-input border border-border px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary placeholder:text-muted-foreground/50"
+                required
+              />
+            </div>
+            <div>
               <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Service</label>
               <select
-                value={form.serviceId}
-                onChange={(e) => setForm({ ...form, serviceId: e.target.value })}
+                value={form.service}
+                onChange={(e) => setForm({ ...form, service: e.target.value })}
                 className="w-full bg-input border border-border px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
                 required
               >
                 <option value="">Select service...</option>
-                {services?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                {services?.map(s => <option key={s.id} value={s.slug}>{s.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Environment</label>
-              <select
-                value={form.environment}
-                onChange={(e) => setForm({ ...form, environment: e.target.value })}
-                className="w-full bg-input border border-border px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary"
-              >
-                <option value="production">Production</option>
-                <option value="staging">Staging</option>
-                <option value="development">Development</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Version</label>
+              <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Branch</label>
               <input
-                value={form.version}
-                onChange={(e) => setForm({ ...form, version: e.target.value })}
-                placeholder="e.g. v1.2.3 or latest"
+                value={form.branch}
+                onChange={(e) => setForm({ ...form, branch: e.target.value })}
+                placeholder="main"
                 className="w-full bg-input border border-border px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary placeholder:text-muted-foreground/50"
               />
             </div>
@@ -127,8 +127,8 @@ export default function Deployments() {
       <div className="border border-border">
         <div className="grid grid-cols-12 text-xs font-medium uppercase tracking-widest text-muted-foreground px-4 py-2 border-b border-border bg-muted/30">
           <div className="col-span-3">Service</div>
-          <div className="col-span-2">Environment</div>
-          <div className="col-span-2">Version</div>
+          <div className="col-span-2">Branch</div>
+          <div className="col-span-2">Commit</div>
           <div className="col-span-2">Status</div>
           <div className="col-span-2">Duration</div>
           <div className="col-span-1">Triggered by</div>
@@ -140,11 +140,11 @@ export default function Deployments() {
         ) : (
           deployments?.map((d, i) => (
             <div key={d.id} className={`grid grid-cols-12 items-center px-4 py-3 text-sm ${i < deployments.length - 1 ? "border-b border-border" : ""} hover:bg-muted/20`}>
-              <div className="col-span-3 font-medium text-foreground">{d.serviceName}</div>
-              <div className="col-span-2 text-xs uppercase text-muted-foreground">{d.environment}</div>
-              <div className="col-span-2 font-mono text-xs text-muted-foreground">{d.version}</div>
+              <div className="col-span-3 font-medium text-foreground">{d.service}</div>
+              <div className="col-span-2 text-xs uppercase text-muted-foreground font-mono">{d.branch}</div>
+              <div className="col-span-2 font-mono text-xs text-muted-foreground">{d.commitSha?.slice(0, 8) || "—"}</div>
               <div className="col-span-2"><StatusBadge status={d.status} /></div>
-              <div className="col-span-2 text-xs text-muted-foreground font-mono">{d.duration || "—"}</div>
+              <div className="col-span-2 text-xs text-muted-foreground font-mono">{d.duration ? `${d.duration}s` : "—"}</div>
               <div className="col-span-1 text-xs text-muted-foreground truncate">{d.triggeredBy || "system"}</div>
             </div>
           ))

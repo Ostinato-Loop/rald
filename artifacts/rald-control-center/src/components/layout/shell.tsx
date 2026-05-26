@@ -1,13 +1,13 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { useGetMe } from "@workspace/api-client-react";
+import { useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
 import { Activity, Box, Database, KeyRound, LayoutDashboard, LogOut, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { logout } = useAuth();
-  const { data: user } = useGetMe({ query: { enabled: location !== "/login" } });
+  const { data: user } = useGetMe({ query: { queryKey: getGetMeQueryKey(), enabled: location !== "/login" } });
 
   const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },

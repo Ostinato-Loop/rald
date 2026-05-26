@@ -36,12 +36,13 @@ router.post("/", requireRole("admin"), async (req, res) => {
 });
 
 router.patch("/:id", requireRole("admin"), async (req, res) => {
+  const id = String(req.params.id);
   const parsed = RotateCredentialBody.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "Invalid request" });
   const encrypted = encryptValue(parsed.data.value);
   const [cred] = await db.update(credentialsTable)
     .set({ encryptedValue: encrypted, lastRotatedAt: new Date(), updatedAt: new Date() })
-    .where(eq(credentialsTable.id, req.params.id))
+    .where(eq(credentialsTable.id, id))
     .returning();
   if (!cred) return res.status(404).json({ error: "Credential not found" });
   return res.json({
@@ -52,7 +53,8 @@ router.patch("/:id", requireRole("admin"), async (req, res) => {
 });
 
 router.delete("/:id", requireRole("admin"), async (req, res) => {
-  await db.delete(credentialsTable).where(eq(credentialsTable.id, req.params.id));
+  const id = String(req.params.id);
+  await db.delete(credentialsTable).where(eq(credentialsTable.id, id));
   return res.status(204).send();
 });
 

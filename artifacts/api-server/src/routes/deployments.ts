@@ -38,7 +38,8 @@ router.post("/", requireRole("admin", "operator"), async (req: AuthRequest, res)
 });
 
 router.get("/:id", async (req, res) => {
-  const [deployment] = await db.select().from(deploymentsTable).where(eq(deploymentsTable.id, req.params.id)).limit(1);
+  const id = String(req.params.id);
+  const [deployment] = await db.select().from(deploymentsTable).where(eq(deploymentsTable.id, id)).limit(1);
   if (!deployment) return res.status(404).json({ error: "Deployment not found" });
   return res.json(deployment);
 });

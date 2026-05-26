@@ -33,11 +33,11 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - name: Install dependencies
+      - name: Install workspace dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Worker deps
-        run: pnpm --filter @workspace/api-worker install --frozen-lockfile
+      - name: Install Worker-specific dependencies
+        run: pnpm install --frozen-lockfile
         working-directory: artifacts/api-worker
 
       - name: Deploy API Worker to Cloudflare

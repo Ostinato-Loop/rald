@@ -18,17 +18,19 @@ router.get("/", async (_req, res) => {
 });
 
 router.get("/:id", async (req, res) => {
-  const [service] = await db.select().from(servicesTable).where(eq(servicesTable.id, req.params.id)).limit(1);
+  const id = String(req.params.id);
+  const [service] = await db.select().from(servicesTable).where(eq(servicesTable.id, id)).limit(1);
   if (!service) return res.status(404).json({ error: "Service not found" });
   return res.json(service);
 });
 
 router.post("/:id/restart", async (req, res) => {
-  const [service] = await db.select().from(servicesTable).where(eq(servicesTable.id, req.params.id)).limit(1);
+  const id = String(req.params.id);
+  const [service] = await db.select().from(servicesTable).where(eq(servicesTable.id, id)).limit(1);
   if (!service) return res.status(404).json({ error: "Service not found" });
-  await db.update(servicesTable).set({ status: "deploying", updatedAt: new Date() }).where(eq(servicesTable.id, req.params.id));
+  await db.update(servicesTable).set({ status: "deploying", updatedAt: new Date() }).where(eq(servicesTable.id, id));
   setTimeout(async () => {
-    await db.update(servicesTable).set({ status: "healthy", updatedAt: new Date() }).where(eq(servicesTable.id, req.params.id));
+    await db.update(servicesTable).set({ status: "healthy", updatedAt: new Date() }).where(eq(servicesTable.id, id));
   }, 3000);
   return res.json({ success: true, message: `Restart triggered for ${service.name}` });
 });
