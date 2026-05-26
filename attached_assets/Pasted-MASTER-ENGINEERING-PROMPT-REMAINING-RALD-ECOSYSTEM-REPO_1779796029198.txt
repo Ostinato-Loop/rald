@@ -1,0 +1,553 @@
+MASTER ENGINEERING PROMPT — REMAINING RALD ECOSYSTEM REPOSITORIES (V1 → V5)
+
+You are the principal infrastructure architect and autonomous systems engineer responsible for engineering ALL remaining repositories, services, orchestration layers, infrastructure systems, AI systems, operational tooling, and ecosystem governance layers within the RALD ecosystem.
+
+Nothing must be left out.
+
+Everything must:
+- launch stable at V1
+- scale operationally at V2
+- evolve autonomously by V5
+
+━━━━━━━━━━━━━━━━━━
+MISSION OBJECTIVE
+━━━━━━━━━━━━━━━━━━
+
+Engineer ALL remaining repositories and services required to complete the RALD ecosystem.
+
+The ecosystem must evolve into:
+“A fully unified AI-native African infrastructure and commerce operating system.”
+
+The platform must unify:
+- commerce
+- finance
+- logistics
+- messaging
+- voice
+- analytics
+- identity
+- AI
+- infrastructure
+- developer tooling
+- observability
+- deployment governance
+
+━━━━━━━━━━━━━━━━━━
+CRITICAL ARCHITECTURE RULES
+━━━━━━━━━━━━━━━━━━
+
+1. ALL systems must be modular.
+2. ALL systems must register into the RALD Control Center.
+3. ALL systems must expose internal APIs.
+4. ALL systems must support future federation.
+5. ALL systems must support multi-country expansion.
+6. ALL systems must support zero-trust governance.
+7. ALL systems must support AI orchestration hooks.
+8. NOTHING may depend on Replit APIs.
+9. ALL deployments controlled by GitRald.
+10. ALL infrastructure governed centrally.
+
+━━━━━━━━━━━━━━━━━━
+MISSING CORE REPOSITORIES TO ENGINEER
+━━━━━━━━━━━━━━━━━━
+
+━━━━━━━━━━━━━━━━━━
+RALD EVENTS + EVENT BUS
+━━━━━━━━━━━━━━━━━━
+
+Repositories:
+- rald-event-bus
+- rald-events-core
+- rald-realtime
+- rald-streams
+- rald-queue
+
+Responsibilities:
+- realtime event propagation
+- distributed event routing
+- AI telemetry ingestion
+- payment event streams
+- logistics event streams
+- deployment event streams
+- customer identity events
+- analytics events
+
+Stack:
+- NATS
+- Redis Streams
+- SSE
+- WebSockets
+
+V5:
+- autonomous orchestration events
+- predictive event intelligence
+- AI event prioritization
+
+━━━━━━━━━━━━━━━━━━
+RALD SEARCH + INDEXING
+━━━━━━━━━━━━━━━━━━
+
+Repositories:
+- rald-search
+- rald-indexer
+- rald-discovery
+
+Features:
+- merchant search
+- product indexing
+- logistics search
+- AI semantic search
+- operational discovery
+- realtime indexing
+
+V5:
+- AI recommendation engine
+- predictive search
+- commerce intelligence graph
+
+━━━━━━━━━━━━━━━━━━
+RALD NOTIFICATIONS
+━━━━━━━━━━━━━━━━━━
+
+Repositories:
+- rald-notify
+- rald-email
+- rald-sms
+- rald-push
+- rald-campaigns
+
+Features:
+- transactional messaging
+- marketing automation
+- push notifications
+- abandoned cart recovery
+- AI campaign generation
+- lifecycle automation
+
+Providers:
+- TERMII
+- email APIs
+- WhatsApp infrastructure later
+
+V5:
+- autonomous campaign AI
+- predictive engagement
+- AI lifecycle optimization
+
+━━━━━━━━━━━━━━━━━━
+RALD BILLING + SUBSCRIPTIONS
+━━━━━━━━━━━━━━━━━━
+
+Repositories:
+- rald-billing
+- rald-subscriptions
+- rald-metering
+- rald-invoicing
+
+Features:
+- subscription billing
+- usage metering
+- enterprise billing
+- AI usage tracking
+- logistics billing
+- SIP billing
+- infrastructure billing
+
+Support:
+- monthly
+- quarterly
+- yearly
+- usage-based pricing
+
+V5:
+- AI dynamic pricing
+- predictive revenue forecasting
+
+━━━━━━━━━━━━━━━━━━
+RALD COMPLIANCE + SECURITY
+━━━━━━━━━━━━━━━━━━
+
+Repositories:
+- rald-security-core
+- rald-compliance
+- rald-audit
+- rald-risk-engine
+- rald-fraud
+
+Features:
+- audit logging
+- fraud detection
+- rate limiting
+- device fingerprinting
+- session intelligence
+- anomaly detection
+- payment risk analysis
+- infrastructure governance
+
+V5:
+- AI fraud prediction
+- autonomous threat response
+- adaptive trust scoring
+
+━━━━━━━━━━━━━━━━━━
+RALD DATA PLATFORM
+━━━━━━━━━━━━━━━━━━
+
+Repositories:
+- rald-data-core
+- rald-lake
+- rald-warehouse
+- rald-analytics-engine
+
+Features:
+- centralized analytics
+- merchant intelligence
+- customer intelligence
+- AI training pipelines
+- telemetry aggregation
+- operational analytics
+
+V5:
+- AI predictive infrastructure
+- autonomous operational optimization
+- distributed intelligence graph
+
+━━━━━━━━━━━━━━━━━━
+RALD AI MEMORY + CONTEXT
+━━━━━━━━━━━━━━━━━━
+
+Repositories:
+- rald-ai-memory
+- rald-context-engine
+- rald-agent-core
+- rald-agent-coordination
+
+Features:
+- shared AI memory
+- infrastructure context
+- merchant context
+- deployment context
+- customer behavior context
+- orchestration memory
+
+AI Agents:
+- Atlas
+- Sentinel
+- Nova
+- Forge
+- Echo
+- Pulse
+- Lee
+
+V5:
+- autonomous AI collaboration
+- predictive orchestration
+- AI operational governance
+
+━━━━━━━━━━━━━━━━━━
+RALD MEDIA + STORAGE
+━━━━━━━━━━━━━━━━━━
+
+Repositories:
+- rald-media
+- rald-storage
+- rald-assets
+- rald-transcoder
+
+Features:
+- media uploads
+- optimization
+- video processing
+- image optimization
+- CDN routing
+- asset governance
+
+Infra:
+- Cloudflare R2
+- AWS S3 fallback
+
+V5:
+- AI media optimization
+- realtime adaptive compression
+
+━━━━━━━━━━━━━━━━━━
+RALD MOBILE INFRASTRUCTURE
+━━━━━━━━━━━━━━━━━━
+
+Repositories:
+- rald-mobile-core
+- loop-mobile
+- payrald-mobile
+- raldtics-mobile
+
+Features:
+- unified mobile SDK
+- realtime sync
+- offline support
+- biometric auth readiness
+- low-end Android optimization
+- push infrastructure
+
+V5:
+- AI-native mobile assistant
+- predictive UX adaptation
+
+━━━━━━━━━━━━━━━━━━
+RALD PARTNER + DEVELOPER PLATFORM
+━━━━━━━━━━━━━━━━━━
+
+Repositories:
+- rald-partners
+- rald-dev-console
+- rald-api-gateway
+- rald-marketplace
+
+Features:
+- developer onboarding
+- API provisioning
+- usage analytics
+- SDK distribution
+- partner ecosystem
+- app marketplace later
+
+V5:
+- third-party ecosystem federation
+- AI-generated integrations
+
+━━━━━━━━━━━━━━━━━━
+RALD WORKFLOW AUTOMATION
+━━━━━━━━━━━━━━━━━━
+
+Repositories:
+- rald-workflows
+- rald-automation
+- rald-triggers
+
+Features:
+- merchant workflows
+- automation pipelines
+- logistics triggers
+- AI workflow orchestration
+- event-driven automations
+
+V5:
+- autonomous business workflows
+- predictive automation engine
+
+━━━━━━━━━━━━━━━━━━
+RALD SUPPORT + INCIDENT SYSTEM
+━━━━━━━━━━━━━━━━━━
+
+Repositories:
+- rald-support
+- rald-incidents
+- rald-status
+- rald-uptime
+
+Features:
+- ticketing
+- AI support routing
+- incident management
+- status pages
+- uptime monitoring
+- escalation systems
+
+V5:
+- autonomous incident response
+- AI remediation suggestions
+
+━━━━━━━━━━━━━━━━━━
+RALD ONBOARDING + GROWTH
+━━━━━━━━━━━━━━━━━━
+
+Repositories:
+- rald-growth
+- rald-referrals
+- rald-onboarding
+- rald-loyalty
+
+Features:
+- referrals
+- cashback systems
+- gamified onboarding
+- ecosystem rewards
+- merchant acquisition
+- customer acquisition
+
+V5:
+- AI growth optimization
+- predictive referral scoring
+
+━━━━━━━━━━━━━━━━━━
+RALD INTERNATIONALIZATION
+━━━━━━━━━━━━━━━━━━
+
+Repositories:
+- rald-i18n
+- rald-regionalization
+
+Features:
+- multilingual support
+- currency abstraction
+- regional compliance
+- regional pricing
+- localization infrastructure
+
+V5:
+- AI realtime localization
+- dynamic regional optimization
+
+━━━━━━━━━━━━━━━━━━
+RALD API GOVERNANCE
+━━━━━━━━━━━━━━━━━━
+
+Repositories:
+- rald-api-core
+- rald-gateway
+- rald-schema
+- rald-versioning
+
+Features:
+- API versioning
+- API governance
+- rate limiting
+- service discovery
+- service mesh readiness
+- API observability
+
+V5:
+- autonomous API optimization
+- AI API orchestration
+
+━━━━━━━━━━━━━━━━━━
+INFRASTRUCTURE GOVERNANCE
+━━━━━━━━━━━━━━━━━━
+
+GitRald controls:
+- deployments
+- rollback
+- observability
+- infrastructure telemetry
+- CI/CD
+- secret rotation
+- infra governance
+- service registration
+
+ALL services must:
+- auto-register
+- expose telemetry
+- expose health checks
+- support observability
+- support feature flags
+
+━━━━━━━━━━━━━━━━━━
+CONTROL CENTER REQUIREMENTS
+━━━━━━━━━━━━━━━━━━
+
+ALL repositories must integrate into:
+“RALD Control Center”
+
+Every system must expose:
+- metrics
+- logs
+- deployment lineage
+- incidents
+- AI telemetry
+- infrastructure state
+
+━━━━━━━━━━━━━━━━━━
+V1 REQUIREMENTS
+━━━━━━━━━━━━━━━━━━
+
+Build:
+- stable production systems
+- secure APIs
+- observability
+- deployment infrastructure
+- unified auth
+- realtime systems
+- centralized governance
+
+━━━━━━━━━━━━━━━━━━
+V2 REQUIREMENTS
+━━━━━━━━━━━━━━━━━━
+
+Add:
+- advanced analytics
+- AI operational assistance
+- workflow automations
+- multi-region readiness
+- enterprise governance
+
+━━━━━━━━━━━━━━━━━━
+V3 REQUIREMENTS
+━━━━━━━━━━━━━━━━━━
+
+Add:
+- distributed orchestration
+- AI optimization systems
+- predictive insights
+- advanced automation
+- ecosystem federation
+
+━━━━━━━━━━━━━━━━━━
+V4 REQUIREMENTS
+━━━━━━━━━━━━━━━━━━
+
+Add:
+- autonomous infrastructure scaling
+- AI deployment governance
+- adaptive infrastructure routing
+- predictive commerce intelligence
+
+━━━━━━━━━━━━━━━━━━
+V5 REQUIREMENTS
+━━━━━━━━━━━━━━━━━━
+
+Evolve ecosystem into:
+“Autonomous AI-native operational infrastructure.”
+
+Capabilities:
+- autonomous orchestration
+- predictive infrastructure management
+- AI commerce optimization
+- AI logistics routing
+- AI fraud prevention
+- autonomous incident mitigation
+- AI business growth optimization
+
+━━━━━━━━━━━━━━━━━━
+FINAL OBJECTIVE
+━━━━━━━━━━━━━━━━━━
+
+Engineer ALL remaining repositories and systems into one unified ecosystem where:
+
+Loop Business powers commerce,
+PayRald powers finance,
+Raldtics powers intelligence,
+RALD SDK powers integrations,
+Loop Voice powers communications,
+Loop Dispatch powers logistics,
+GitRald powers infrastructure,
+RALD Control Center governs everything.
+
+Nothing should feel disconnected.
+
+Everything must:
+- feel unified
+- feel AI-native
+- feel operationally intelligent
+- feel African-first
+- feel massively scalable
+
+Immediately:
+1. initialize all remaining repositories
+2. engineer V1 architecture
+3. wire centralized governance
+4. configure observability
+5. connect AI orchestration
+6. configure realtime infrastructure
+7. prepare multi-region scaling
+8. preserve zero-trust security
+9. deploy infrastructure foundations
+10. pipeline all systems toward autonomous V5 evolution
