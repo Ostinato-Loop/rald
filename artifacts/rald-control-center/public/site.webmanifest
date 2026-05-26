@@ -1,0 +1,23 @@
+{
+  "name": "RALD Control Center",
+  "short_name": "RALD CC",
+  "description": "RALD Infrastructure Command & Control — Authorized Operators Only",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b111e",
+  "theme_color": "#0b111e",
+  "icons": [
+    {
+      "src": "/rald-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/rald-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
