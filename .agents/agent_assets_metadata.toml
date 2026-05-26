@@ -1,0 +1,44 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "nbLOkgRnniGM0LOd3aK01"
+uri = "file://artifacts/rald-marketing/public/images/hero-home.png"
+type = "image"
+title = "Home hero tech infrastructure"
+
+[[generated]]
+id = "9cO0AAOtWVInBSROl0cmI"
+uri = "file://artifacts/rald-marketing/public/images/hero-loop-business.png"
+type = "image"
+title = "Loop Business commerce hero"
+
+[[generated]]
+id = "hXLs1DOXxHoTIgsC73Zl0"
+uri = "file://artifacts/rald-marketing/public/images/hero-payrald.png"
+type = "image"
+title = "PayRald payments hero"
+
+[[generated]]
+id = "TU2FTCRUSC4oMg83hYmp2"
+uri = "file://artifacts/rald-marketing/public/images/hero-loop-dispatch.png"
+type = "image"
+title = "Loop Dispatch logistics hero"
+
+[[generated]]
+id = "zZIivimYTObzTag9YJC5S"
+uri = "file://artifacts/rald-marketing/public/images/hero-raldtics.png"
+type = "image"
+title = "Raldtics analytics hero"
+
+[[generated]]
+id = "EdWUmdd07gYCTFxO61Oe4"
+uri = "file://artifacts/rald-marketing/public/images/hero-loop-voice.png"
+type = "image"
+title = "Loop Voice communications hero"
+
+[[generated]]
+id = "vFl8NuplI3o7teZiOalN0"
+uri = "file://artifacts/rald-marketing/public/images/hero-gitrald.png"
+type = "image"
+title = "GitRald infrastructure hero"

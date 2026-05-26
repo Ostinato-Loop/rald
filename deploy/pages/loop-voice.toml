@@ -1,0 +1,6 @@
+name = "loop-voice"
+pages_build_output_dir = "dist/public"
+compatibility_date = "2024-01-01"
+
+[env.production]
+routes = [{ pattern = "voice.rald.cloud/*", zone_name = "rald.cloud" }]

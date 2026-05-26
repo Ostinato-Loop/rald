@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "RALD Control Center"
+version = "1.0.0"
+id = "artifacts/rald-control-center"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18795
+
+[services.development]
+run = "pnpm --filter @workspace/rald-control-center run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/rald-control-center", "run", "build" ]
+publicDir = "artifacts/rald-control-center/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18795"
+BASE_PATH = "/"

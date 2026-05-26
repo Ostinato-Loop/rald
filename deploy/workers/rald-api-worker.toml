@@ -1,0 +1,14 @@
+name = "rald-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ENVIRONMENT = "production"
+
+[[routes]]
+pattern = "api.rald.cloud/*"
+zone_name = "rald.cloud"
+
+[build]
+command = "pnpm --filter @workspace/api-server run build"
