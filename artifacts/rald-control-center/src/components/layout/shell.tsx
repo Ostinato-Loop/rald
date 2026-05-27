@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
-import { Activity, Box, Database, KeyRound, LayoutDashboard, LogOut } from "lucide-react";
+import { Activity, Box, Database, KeyRound, LayoutDashboard, LogOut, Monitor } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RaldLogo } from "@/components/logo";
 
@@ -16,6 +16,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
     { href: "/deployments", label: "Deployments", icon: Box },
     { href: "/credentials", label: "Credentials", icon: KeyRound },
     { href: "/products", label: "Products", icon: Database },
+    { href: "/sessions", label: "Sessions", icon: Monitor },
   ];
 
   return (
@@ -56,6 +57,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <LogOut className="w-4 h-4 mr-3" />
             Sign Out
           </button>
+          <p className="text-[10px] text-muted-foreground/50 text-center mt-3 px-2">
+            RALD · LILCKY STUDIO LIMITED
+          </p>
         </div>
       </aside>
       <main className="flex-1 flex flex-col h-screen overflow-auto bg-background">

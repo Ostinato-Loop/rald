@@ -6,11 +6,14 @@ compatibility_flags = []
 [vars]
 ENVIRONMENT = "production"
 
-# Secrets (set via: wrangler secret put <NAME>)
-# SUPABASE_URL
-# SUPABASE_SERVICE_ROLE_KEY
-# RALD_JWT_SECRET
-# RALD_ENCRYPTION_KEY
+# Secrets — set via: wrangler secret put <NAME>
+# Required:
+#   SUPABASE_URL
+#   SUPABASE_SERVICE_ROLE_KEY
+#   RALD_JWT_SECRET
+#   RALD_ENCRYPTION_KEY
+#   TERMII_API_KEY         — SMS OTP (https://termii.com)
+#   RESEND_API_KEY         — Email OTP / transactional email (https://resend.com)
 
 [[routes]]
 pattern = "api.rald.cloud/*"

@@ -1,22 +1,26 @@
 -- ============================================================
--- RALD Production Schema — Clean (no seed data)
+-- RALD Production Schema v1.1 — Clean (no seed data)
+-- Owner: LILCKY STUDIO LIMITED
 -- Run in Supabase SQL Editor to initialize the production DB.
 -- ============================================================
 
--- Users (shared by all RALD apps — control center staff, end users, merchants)
+-- Users
 CREATE TABLE IF NOT EXISTS users (
-  id          TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  email       TEXT NOT NULL UNIQUE,
-  password_hash TEXT NOT NULL,
-  name        TEXT,
-  role        TEXT NOT NULL DEFAULT 'user'
-              CHECK (role IN ('admin', 'operator', 'viewer', 'user', 'merchant')),
-  metadata    JSONB,
-  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  id              TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  email           TEXT NOT NULL UNIQUE,
+  phone           TEXT UNIQUE,
+  password_hash   TEXT NOT NULL DEFAULT '',
+  name            TEXT,
+  role            TEXT NOT NULL DEFAULT 'user'
+                  CHECK (role IN ('admin','operator','viewer','user','merchant')),
+  email_verified  BOOLEAN NOT NULL DEFAULT FALSE,
+  phone_verified  BOOLEAN NOT NULL DEFAULT FALSE,
+  metadata        JSONB,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 CREATE INDEX IF NOT EXISTS users_email_idx ON users (email);
+CREATE INDEX IF NOT EXISTS users_phone_idx ON users (phone);
 CREATE INDEX IF NOT EXISTS users_role_idx  ON users (role);
 
 -- Services (control center registry)
@@ -36,8 +40,6 @@ CREATE TABLE IF NOT EXISTS services (
   created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
-CREATE INDEX IF NOT EXISTS services_slug_idx ON services (slug);
 
 -- Credentials (encrypted secrets vault)
 CREATE TABLE IF NOT EXISTS credentials (
@@ -73,9 +75,6 @@ CREATE TABLE IF NOT EXISTS deployments (
   completed_at      TIMESTAMPTZ
 );
 
-CREATE INDEX IF NOT EXISTS deployments_service_id_idx ON deployments (service_id);
-CREATE INDEX IF NOT EXISTS deployments_status_idx     ON deployments (status);
-
 -- Products
 CREATE TABLE IF NOT EXISTS products (
   id             TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
@@ -95,21 +94,52 @@ CREATE TABLE IF NOT EXISTS products (
   updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS products_slug_idx ON products (slug);
+-- OTPs (SMS + Email verification codes)
+CREATE TABLE IF NOT EXISTS otps (
+  id          TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  phone       TEXT,
+  email       TEXT,
+  pin_id      TEXT,        -- Termii pinId for SMS OTPs
+  code_hash   TEXT,        -- SHA-256 hash for email OTPs
+  type        TEXT NOT NULL DEFAULT 'sms'
+              CHECK (type IN ('sms','email','password_reset')),
+  used        BOOLEAN NOT NULL DEFAULT FALSE,
+  expires_at  TIMESTAMPTZ NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS otps_email_idx   ON otps (email) WHERE used = FALSE;
+CREATE INDEX IF NOT EXISTS otps_phone_idx   ON otps (phone) WHERE used = FALSE;
+CREATE INDEX IF NOT EXISTS otps_expires_idx ON otps (expires_at);
 
--- Disable Row Level Security (service role key used from Worker)
-ALTER TABLE users       DISABLE ROW LEVEL SECURITY;
-ALTER TABLE services    DISABLE ROW LEVEL SECURITY;
-ALTER TABLE credentials DISABLE ROW LEVEL SECURITY;
-ALTER TABLE deployments DISABLE ROW LEVEL SECURITY;
-ALTER TABLE products    DISABLE ROW LEVEL SECURITY;
+-- Sessions
+CREATE TABLE IF NOT EXISTS sessions (
+  id           TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  user_id      TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash   TEXT NOT NULL UNIQUE,
+  user_agent   TEXT,
+  ip_address   TEXT,
+  last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  revoked_at   TIMESTAMPTZ,
+  expires_at   TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '30 days')
+);
+CREATE INDEX IF NOT EXISTS sessions_user_id_idx   ON sessions (user_id);
+CREATE INDEX IF NOT EXISTS sessions_expires_idx   ON sessions (expires_at);
+
+-- Disable RLS (service role key used from Worker)
+ALTER TABLE users        DISABLE ROW LEVEL SECURITY;
+ALTER TABLE services     DISABLE ROW LEVEL SECURITY;
+ALTER TABLE credentials  DISABLE ROW LEVEL SECURITY;
+ALTER TABLE deployments  DISABLE ROW LEVEL SECURITY;
+ALTER TABLE products     DISABLE ROW LEVEL SECURITY;
+ALTER TABLE otps         DISABLE ROW LEVEL SECURITY;
+ALTER TABLE sessions     DISABLE ROW LEVEL SECURITY;
 
 -- Auto-update updated_at
 CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN NEW.updated_at = NOW(); RETURN NEW; END;
 $$;
-
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'users_updated_at') THEN
     CREATE TRIGGER users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION set_updated_at();
@@ -122,9 +152,5 @@ DO $$ BEGIN
   END IF;
 END $$;
 
--- NOTE: No seed data. Create your first admin via:
---   INSERT INTO users (email, password_hash, name, role) VALUES (
---     'admin@rald.cloud',
---     '<use the /api/auth/register endpoint or hash a password with the PBKDF2 lib>',
---     'RALD Admin', 'admin'
---   );
+-- NOTE: No seed data. RALD is owned and operated by LILCKY STUDIO LIMITED.
+-- To create the first admin account, register via /api/auth/register with role='admin'.

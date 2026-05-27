@@ -14,6 +14,8 @@ export type Bindings = {
   SUPABASE_SERVICE_ROLE_KEY: string;
   RALD_JWT_SECRET: string;
   RALD_ENCRYPTION_KEY: string;
+  TERMII_API_KEY: string;
+  RESEND_API_KEY: string;
   ENVIRONMENT: string;
 };
 
@@ -24,19 +26,38 @@ export type Variables = {
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
-app.use("*", cors({
-  origin: ["https://rald.cloud", "https://admin.rald.cloud", "https://app.rald.cloud", "https://rald-control-center.pages.dev"],
-  allowHeaders: ["Authorization", "Content-Type"],
-  allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  credentials: true,
-}));
+app.use(
+  "*",
+  cors({
+    origin: [
+      "https://rald.cloud",
+      "https://app.rald.cloud",
+      "https://admin.rald.cloud",
+      "https://rald-app.pages.dev",
+      "https://rald-control-center.pages.dev",
+    ],
+    allowHeaders: ["Authorization", "Content-Type"],
+    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    credentials: true,
+  })
+);
 
 app.use("*", async (c, next) => {
-  c.set("db", createClient(c.env.SUPABASE_URL, c.env.SUPABASE_SERVICE_ROLE_KEY));
+  c.set(
+    "db",
+    createClient(c.env.SUPABASE_URL, c.env.SUPABASE_SERVICE_ROLE_KEY)
+  );
   await next();
 });
 
-app.get("/api/healthz", (c) => c.json({ status: "ok", version: "1.0.0", environment: c.env.ENVIRONMENT }));
+app.get("/api/healthz", (c) =>
+  c.json({
+    status: "ok",
+    version: "1.1.0",
+    environment: c.env.ENVIRONMENT,
+    owner: "LILCKY STUDIO LIMITED",
+  })
+);
 
 app.route("/api/auth", authRoutes);
 app.route("/api/services", servicesRoutes);

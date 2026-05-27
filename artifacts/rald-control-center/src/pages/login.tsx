@@ -40,44 +40,39 @@ export default function Login() {
           </h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+              <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Email</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-input border border-border px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
-                required
-              />
+                required />
             </div>
             <div>
-              <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+              <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Password</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-input border border-border px-3 py-2 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
-                required
-              />
+                required />
             </div>
             {error && (
-              <p className="text-xs text-destructive border border-destructive/30 bg-destructive/10 px-3 py-2">
-                {error}
-              </p>
+              <p className="text-xs text-destructive border border-destructive/30 bg-destructive/10 px-3 py-2">{error}</p>
             )}
-            <button
-              type="submit"
-              disabled={loginMutation.isPending}
-              className="w-full bg-primary text-primary-foreground py-2.5 text-sm font-bold uppercase tracking-wider hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loginMutation.isPending ? "Authenticating..." : "Access Control Center"}
+            <button type="submit" disabled={loginMutation.isPending}
+              className="w-full bg-primary text-primary-foreground py-2.5 text-sm font-bold uppercase tracking-wider hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              {loginMutation.isPending ? "Authenticating…" : "Access Control Center"}
             </button>
           </form>
+
+          <div className="flex items-center justify-between mt-5 pt-4 border-t border-border">
+            <button type="button" onClick={() => setLocation("/forgot-password")}
+              className="text-xs text-muted-foreground hover:text-primary transition-colors">
+              Forgot password?
+            </button>
+            <button type="button" onClick={() => setLocation("/signup")}
+              className="text-xs text-muted-foreground hover:text-primary transition-colors">
+              Create account
+            </button>
+          </div>
+
           <p className="text-xs text-muted-foreground mt-4 text-center">
-            RALD Infrastructure — Authorized Personnel Only
+            RALD by LILCKY STUDIO LIMITED — Authorized Personnel Only
           </p>
         </div>
       </div>
