@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 110" role="img" aria-label="RALD">
+  <defs>
+    <mask id="a-mask" maskUnits="userSpaceOnUse">
+      <text
+        font-family="'Arial Black','Helvetica Neue',Arial,sans-serif"
+        font-size="104"
+        font-weight="900"
+        x="102"
+        y="100"
+        fill="white"
+        letter-spacing="-2"
+      >A</text>
+    </mask>
+  </defs>
+
+  <!-- R -->
+  <text
+    font-family="'Arial Black','Helvetica Neue',Arial,sans-serif"
+    font-size="104"
+    font-weight="900"
+    x="2"
+    y="100"
+    fill="#0D2137"
+    letter-spacing="-2"
+  >R</text>
+
+  <!-- A — three colored regions masked to A letterform -->
+  <!-- Red: left leg -->
+  <rect x="102" y="0" width="42" height="110" fill="#E63946" mask="url(#a-mask)"/>
+  <!-- Amber: right section -->
+  <rect x="144" y="0" width="44" height="110" fill="#F4A261" mask="url(#a-mask)"/>
+  <!-- Teal: top arch — drawn last to overlay -->
+  <rect x="102" y="0" width="86" height="46" fill="#2ECFA3" mask="url(#a-mask)"/>
+
+  <!-- LD -->
+  <text
+    font-family="'Arial Black','Helvetica Neue',Arial,sans-serif"
+    font-size="104"
+    font-weight="900"
+    x="197"
+    y="100"
+    fill="#0D2137"
+    letter-spacing="-2"
+  >LD</text>
+</svg>

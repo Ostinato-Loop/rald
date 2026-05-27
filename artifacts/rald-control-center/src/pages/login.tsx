@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useLogin } from "@workspace/api-client-react";
-import { ShieldAlert } from "lucide-react";
+import { RaldLogo } from "@/components/logo";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -30,12 +30,11 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-background dark flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        <div className="flex items-center justify-center mb-8">
-          <ShieldAlert className="w-8 h-8 text-primary mr-3" />
-          <span className="text-2xl font-bold tracking-widest uppercase text-foreground">RALD</span>
+        <div className="flex items-center justify-center mb-10">
+          <RaldLogo dark className="h-10 w-auto" />
         </div>
         <div className="border border-border bg-card p-8">
-          <h1 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6">
+          <h1 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-6">
             Operator Access
           </h1>
           <form onSubmit={handleSubmit} className="space-y-4">

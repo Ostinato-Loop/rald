@@ -118,8 +118,8 @@ jobs:
           echo "| Target | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|--------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| API Worker (api.rald.cloud) | ${{ needs.deploy-api-worker.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Control Center (admin.rald.cloud) | ${{ needs.deploy-control-center.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Control Center (app.rald.cloud / admin.rald.cloud) | ${{ needs.deploy-control-center.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Marketing (rald.cloud) | ${{ needs.deploy-marketing.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "Triggered by: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "Commit: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Triggered by: **${{ github.actor }}**" >> $GITHUB_STEP_SUMMARY

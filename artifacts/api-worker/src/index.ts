@@ -25,7 +25,7 @@ export type Variables = {
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
 app.use("*", cors({
-  origin: ["https://rald.cloud", "https://admin.rald.cloud", "https://rald-control-center.pages.dev"],
+  origin: ["https://rald.cloud", "https://admin.rald.cloud", "https://app.rald.cloud", "https://rald-control-center.pages.dev"],
   allowHeaders: ["Authorization", "Content-Type"],
   allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   credentials: true,

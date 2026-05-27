@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 110" role="img" aria-label="RALD">
+  <defs>
+    <mask id="a-mask-d" maskUnits="userSpaceOnUse">
+      <text
+        font-family="'Arial Black','Helvetica Neue',Arial,sans-serif"
+        font-size="104"
+        font-weight="900"
+        x="102"
+        y="100"
+        fill="white"
+        letter-spacing="-2"
+      >A</text>
+    </mask>
+  </defs>
+  <text font-family="'Arial Black','Helvetica Neue',Arial,sans-serif" font-size="104" font-weight="900" x="2" y="100" fill="#FFFFFF" letter-spacing="-2">R</text>
+  <rect x="102" y="0" width="42" height="110" fill="#E63946" mask="url(#a-mask-d)"/>
+  <rect x="144" y="0" width="44" height="110" fill="#F4A261" mask="url(#a-mask-d)"/>
+  <rect x="102" y="0" width="86" height="46" fill="#2ECFA3" mask="url(#a-mask-d)"/>
+  <text font-family="'Arial Black','Helvetica Neue',Arial,sans-serif" font-size="104" font-weight="900" x="197" y="100" fill="#FFFFFF" letter-spacing="-2">LD</text>
+</svg>
