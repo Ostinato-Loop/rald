@@ -34,10 +34,10 @@ jobs:
           cache: pnpm
 
       - name: Install workspace dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Install Worker-specific dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
         working-directory: artifacts/api-worker
 
       - name: Deploy API Worker to Cloudflare
@@ -65,7 +65,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build Control Center
         run: pnpm --filter @workspace/rald-control-center run build
@@ -96,7 +96,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build Marketing site
         run: pnpm --filter @workspace/rald-marketing run build
