@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useLogin } from "@workspace/api-client-react";
+import type { AuthToken } from "@workspace/api-client-react";
 import { RaldLogo } from "@/components/logo";
 
 export default function Login() {
@@ -11,7 +12,7 @@ export default function Login() {
 
   const loginMutation = useLogin({
     mutation: {
-      onSuccess: (data) => {
+      onSuccess: (data: AuthToken) => {
         localStorage.setItem("rald_token", data.token);
         setLocation("/");
       },
