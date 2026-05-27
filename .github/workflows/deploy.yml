@@ -73,11 +73,10 @@ jobs:
           VITE_API_URL: https://api.rald.cloud
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy artifacts/rald-control-center/dist/public --project-name=rald-control-center --branch=main
+        run: npx wrangler@3 pages deploy artifacts/rald-control-center/dist/public --project-name=rald-control-center --branch=main
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
   deploy-marketing:
     name: Deploy Marketing Site
@@ -102,11 +101,10 @@ jobs:
         run: pnpm --filter @workspace/rald-marketing run build
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy artifacts/rald-marketing/dist/public --project-name=rald-marketing --branch=main
+        run: npx wrangler@3 pages deploy artifacts/rald-marketing/dist/public --project-name=rald-marketing --branch=main
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
   notify:
     name: Post Deployment Summary
