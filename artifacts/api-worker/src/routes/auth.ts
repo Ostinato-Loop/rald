@@ -67,7 +67,13 @@ auth.post("/register", async (c) => {
 
   const { data: newUsers, error } = await db
     .from("users")
-    .insert({ email, password_hash, name, role, metadata: Object.keys(metadata).length ? metadata : null })
+    .insert({
+      email,
+      password_hash,
+      name,
+      role,
+      metadata: Object.keys(metadata).length > 0 ? metadata : null,
+    })
     .select("id, email, name, role, created_at")
     .limit(1);
 
@@ -76,15 +82,25 @@ auth.post("/register", async (c) => {
     return c.json({ error: "Failed to create account. Please try again." }, 500);
   }
 
-  const user = newUsers[0];
+  const newUser = newUsers[0];
+  if (!newUser) {
+    return c.json({ error: "Failed to create account. Please try again." }, 500);
+  }
+
   const token = await signJwt(
-    { id: user.id, email: user.email, role: user.role },
+    { id: newUser.id, email: newUser.email, role: newUser.role },
     c.env.RALD_JWT_SECRET
   );
 
   return c.json({
     token,
-    user: { id: user.id, email: user.email, name: user.name, role: user.role, createdAt: user.created_at },
+    user: {
+      id: newUser.id,
+      email: newUser.email,
+      name: newUser.name,
+      role: newUser.role,
+      createdAt: newUser.created_at,
+    },
   }, 201);
 });
 
