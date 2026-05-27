@@ -10,7 +10,7 @@ on:
         required: false
         default: all
         type: choice
-        options: [all, api, control-center, marketing]
+        options: [all, api, app, control-center, marketing]
 
 concurrency:
   group: deploy-${{ github.ref }}
@@ -18,28 +18,23 @@ concurrency:
 
 jobs:
   deploy-api-worker:
-    name: Deploy API Worker
+    name: Deploy API Worker (api.rald.cloud)
     runs-on: ubuntu-latest
     if: github.event.inputs.target == 'all' || github.event.inputs.target == 'api' || github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-
       - name: Install workspace dependencies
         run: pnpm install --no-frozen-lockfile
-
       - name: Install Worker-specific dependencies
         run: pnpm install --no-frozen-lockfile
         working-directory: artifacts/api-worker
-
       - name: Deploy API Worker to Cloudflare
         uses: cloudflare/wrangler-action@v3
         with:
@@ -48,30 +43,50 @@ jobs:
           workingDirectory: artifacts/api-worker
           command: deploy src/index.ts --name rald-api
 
-  deploy-control-center:
-    name: Deploy Control Center
+  deploy-rald-app:
+    name: Deploy RALD App (app.rald.cloud)
     runs-on: ubuntu-latest
-    if: github.event.inputs.target == 'all' || github.event.inputs.target == 'control-center' || github.event_name == 'push'
+    if: github.event.inputs.target == 'all' || github.event.inputs.target == 'app' || github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
+      - name: Build RALD App
+        run: pnpm --filter @workspace/rald-app run build
+        env:
+          VITE_API_URL: https://api.rald.cloud
+      - name: Deploy to Cloudflare Pages
+        run: npx wrangler@3 pages deploy artifacts/rald-app/dist/public --project-name=rald-app --branch=main
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
+  deploy-control-center:
+    name: Deploy Control Center (admin.rald.cloud)
+    runs-on: ubuntu-latest
+    if: github.event.inputs.target == 'all' || github.event.inputs.target == 'control-center' || github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
       - name: Build Control Center
         run: pnpm --filter @workspace/rald-control-center run build
         env:
           VITE_API_URL: https://api.rald.cloud
-
       - name: Deploy to Cloudflare Pages
         run: npx wrangler@3 pages deploy artifacts/rald-control-center/dist/public --project-name=rald-control-center --branch=main
         env:
@@ -79,27 +94,22 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
   deploy-marketing:
-    name: Deploy Marketing Site
+    name: Deploy Marketing Site (rald.cloud)
     runs-on: ubuntu-latest
     if: github.event.inputs.target == 'all' || github.event.inputs.target == 'marketing' || github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
-
       - name: Build Marketing site
         run: pnpm --filter @workspace/rald-marketing run build
-
       - name: Deploy to Cloudflare Pages
         run: npx wrangler@3 pages deploy artifacts/rald-marketing/dist/public --project-name=rald-marketing --branch=main
         env:
@@ -107,9 +117,9 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
   notify:
-    name: Post Deployment Summary
+    name: Deployment Summary
     runs-on: ubuntu-latest
-    needs: [deploy-api-worker, deploy-control-center, deploy-marketing]
+    needs: [deploy-api-worker, deploy-rald-app, deploy-control-center, deploy-marketing]
     if: always()
     steps:
       - name: Deployment summary
@@ -118,7 +128,8 @@ jobs:
           echo "| Target | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|--------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| API Worker (api.rald.cloud) | ${{ needs.deploy-api-worker.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Control Center (app.rald.cloud / admin.rald.cloud) | ${{ needs.deploy-control-center.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| RALD App (app.rald.cloud) | ${{ needs.deploy-rald-app.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Control Center (admin.rald.cloud) | ${{ needs.deploy-control-center.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Marketing (rald.cloud) | ${{ needs.deploy-marketing.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Commit: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY

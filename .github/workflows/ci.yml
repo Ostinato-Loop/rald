@@ -54,6 +54,11 @@ jobs:
       - name: Build API server
         run: pnpm --filter @workspace/api-server run build
 
+      - name: Build RALD App (app.rald.cloud)
+        run: pnpm --filter @workspace/rald-app run build
+        env:
+          VITE_API_URL: https://api.rald.cloud
+
       - name: Build Control Center
         run: pnpm --filter @workspace/rald-control-center run build
         env:
@@ -61,6 +66,13 @@ jobs:
 
       - name: Build Marketing site
         run: pnpm --filter @workspace/rald-marketing run build
+
+      - name: Upload RALD App dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: rald-app-dist
+          path: artifacts/rald-app/dist/public
+          retention-days: 1
 
       - name: Upload Control Center dist
         uses: actions/upload-artifact@v4

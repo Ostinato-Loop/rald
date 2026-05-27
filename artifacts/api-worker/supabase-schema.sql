@@ -1,103 +1,130 @@
--- RALD Production Schema for Supabase
--- Run this in the Supabase SQL editor to set up the production database
+-- ============================================================
+-- RALD Production Schema — Clean (no seed data)
+-- Run in Supabase SQL Editor to initialize the production DB.
+-- ============================================================
 
--- Users
+-- Users (shared by all RALD apps — control center staff, end users, merchants)
 CREATE TABLE IF NOT EXISTS users (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  email TEXT NOT NULL UNIQUE,
+  id          TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  email       TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
-  name TEXT,
-  role TEXT NOT NULL DEFAULT 'viewer' CHECK (role IN ('admin', 'operator', 'viewer')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  name        TEXT,
+  role        TEXT NOT NULL DEFAULT 'user'
+              CHECK (role IN ('admin', 'operator', 'viewer', 'user', 'merchant')),
+  metadata    JSONB,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Services
+CREATE INDEX IF NOT EXISTS users_email_idx ON users (email);
+CREATE INDEX IF NOT EXISTS users_role_idx  ON users (role);
+
+-- Services (control center registry)
 CREATE TABLE IF NOT EXISTS services (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  name TEXT NOT NULL,
-  slug TEXT NOT NULL UNIQUE,
-  status TEXT NOT NULL DEFAULT 'unknown' CHECK (status IN ('healthy', 'degraded', 'down', 'deploying', 'unknown')),
-  product TEXT NOT NULL,
-  url TEXT NOT NULL,
-  version TEXT NOT NULL DEFAULT 'v1.0.0',
-  region TEXT,
-  uptime REAL,
+  id               TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  name             TEXT NOT NULL,
+  slug             TEXT NOT NULL UNIQUE,
+  status           TEXT NOT NULL DEFAULT 'unknown'
+                   CHECK (status IN ('healthy','degraded','down','deploying','unknown')),
+  product          TEXT NOT NULL,
+  url              TEXT NOT NULL,
+  version          TEXT NOT NULL DEFAULT 'v1.0.0',
+  region           TEXT,
+  uptime           REAL,
   response_time_ms REAL,
   last_deployed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Credentials
+CREATE INDEX IF NOT EXISTS services_slug_idx ON services (slug);
+
+-- Credentials (encrypted secrets vault)
 CREATE TABLE IF NOT EXISTS credentials (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  name TEXT NOT NULL,
-  service TEXT NOT NULL,
-  type TEXT NOT NULL DEFAULT 'api_key',
+  id              TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  name            TEXT NOT NULL,
+  service         TEXT NOT NULL,
+  type            TEXT NOT NULL DEFAULT 'api_key',
   encrypted_value TEXT NOT NULL,
-  masked_value TEXT,
+  masked_value    TEXT,
   last_rotated_at TIMESTAMPTZ,
-  expires_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  expires_at      TIMESTAMPTZ,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Deployments
 CREATE TABLE IF NOT EXISTS deployments (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  service_id TEXT,
-  service_name TEXT NOT NULL,
-  product TEXT NOT NULL,
-  environment TEXT NOT NULL DEFAULT 'production',
-  version TEXT NOT NULL DEFAULT 'latest',
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'building', 'deploying', 'success', 'failed', 'rolled_back')),
-  branch TEXT NOT NULL DEFAULT 'main',
-  commit_sha TEXT NOT NULL,
-  commit_message TEXT,
-  triggered_by TEXT NOT NULL,
-  duration TEXT,
+  id                TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  service_id        TEXT,
+  service_name      TEXT NOT NULL,
+  product           TEXT NOT NULL,
+  environment       TEXT NOT NULL DEFAULT 'production',
+  version           TEXT NOT NULL DEFAULT 'latest',
+  status            TEXT NOT NULL DEFAULT 'pending'
+                    CHECK (status IN ('pending','building','deploying','success','failed','rolled_back')),
+  branch            TEXT NOT NULL DEFAULT 'main',
+  commit_sha        TEXT NOT NULL,
+  commit_message    TEXT,
+  triggered_by      TEXT NOT NULL,
+  duration          TEXT,
   cf_deployment_url TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  completed_at TIMESTAMPTZ
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  completed_at      TIMESTAMPTZ
 );
+
+CREATE INDEX IF NOT EXISTS deployments_service_id_idx ON deployments (service_id);
+CREATE INDEX IF NOT EXISTS deployments_status_idx     ON deployments (status);
 
 -- Products
 CREATE TABLE IF NOT EXISTS products (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-  name TEXT NOT NULL,
-  slug TEXT NOT NULL UNIQUE,
-  tagline TEXT NOT NULL,
-  domain TEXT NOT NULL,
-  color TEXT NOT NULL,
-  version TEXT NOT NULL DEFAULT 'v1.0.0',
-  status TEXT NOT NULL DEFAULT 'coming_soon' CHECK (status IN ('live', 'beta', 'coming_soon', 'maintenance')),
+  id             TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  name           TEXT NOT NULL,
+  slug           TEXT NOT NULL UNIQUE,
+  tagline        TEXT NOT NULL,
+  domain         TEXT NOT NULL,
+  color          TEXT NOT NULL,
+  version        TEXT NOT NULL DEFAULT 'v1.0.0',
+  status         TEXT NOT NULL DEFAULT 'coming_soon'
+                 CHECK (status IN ('live','beta','coming_soon','maintenance')),
   services_count INTEGER NOT NULL DEFAULT 0,
-  active_users INTEGER DEFAULT 0,
-  mrr REAL DEFAULT 0,
-  url TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  active_users   INTEGER DEFAULT 0,
+  mrr            REAL DEFAULT 0,
+  url            TEXT,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Seed admin user (password: rald-admin-2025 — CHANGE IN PRODUCTION)
-INSERT INTO users (email, password_hash, name, role) VALUES
-  ('admin@rald.cloud', 'pbkdf2:change-this-after-running-setup:placeholder', 'RALD Admin', 'admin')
-ON CONFLICT (email) DO NOTHING;
+CREATE UNIQUE INDEX IF NOT EXISTS products_slug_idx ON products (slug);
 
--- Seed products
-INSERT INTO products (name, slug, tagline, domain, color, version, status, active_users) VALUES
-  ('Loop Business', 'loop-business', 'Commerce infrastructure for African merchants', 'loop.rald.cloud', '#6366F1', 'v1.0.0', 'live', 1240),
-  ('PayRald', 'payrald', 'Unified payments and finance layer', 'pay.rald.cloud', '#10B981', 'v1.0.0', 'live', 890),
-  ('Loop Dispatch', 'loop-dispatch', 'Last-mile logistics and delivery', 'dispatch.rald.cloud', '#F59E0B', 'v0.9.0', 'beta', 340),
-  ('Raldtics', 'raldtics', 'Intelligence and analytics', 'analytics.rald.cloud', '#8B5CF6', 'v0.8.0', 'beta', 120),
-  ('Loop Voice', 'loop-voice', 'Communications and SIP infrastructure', 'voice.rald.cloud', '#EC4899', 'v0.7.0', 'beta', 80),
-  ('GitRald', 'gitrald', 'Infrastructure governance and CI/CD', 'git.rald.cloud', '#EF4444', 'v0.5.0', 'coming_soon', 0)
-ON CONFLICT (slug) DO NOTHING;
-
--- RLS policies (disable RLS since we use service role key from Worker)
-ALTER TABLE users DISABLE ROW LEVEL SECURITY;
-ALTER TABLE services DISABLE ROW LEVEL SECURITY;
+-- Disable Row Level Security (service role key used from Worker)
+ALTER TABLE users       DISABLE ROW LEVEL SECURITY;
+ALTER TABLE services    DISABLE ROW LEVEL SECURITY;
 ALTER TABLE credentials DISABLE ROW LEVEL SECURITY;
 ALTER TABLE deployments DISABLE ROW LEVEL SECURITY;
-ALTER TABLE products DISABLE ROW LEVEL SECURITY;
+ALTER TABLE products    DISABLE ROW LEVEL SECURITY;
+
+-- Auto-update updated_at
+CREATE OR REPLACE FUNCTION set_updated_at()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN NEW.updated_at = NOW(); RETURN NEW; END;
+$$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'users_updated_at') THEN
+    CREATE TRIGGER users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'services_updated_at') THEN
+    CREATE TRIGGER services_updated_at BEFORE UPDATE ON services FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'products_updated_at') THEN
+    CREATE TRIGGER products_updated_at BEFORE UPDATE ON products FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+  END IF;
+END $$;
+
+-- NOTE: No seed data. Create your first admin via:
+--   INSERT INTO users (email, password_hash, name, role) VALUES (
+--     'admin@rald.cloud',
+--     '<use the /api/auth/register endpoint or hash a password with the PBKDF2 lib>',
+--     'RALD Admin', 'admin'
+--   );

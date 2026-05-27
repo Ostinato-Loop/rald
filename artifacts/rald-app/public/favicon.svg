@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 110">
+  <defs>
+    <mask id="fav-mask" maskUnits="userSpaceOnUse">
+      <text fontFamily="Arial Black,sans-serif" fontSize="104" fontWeight="900" x="24" y="100" fill="white">A</text>
+    </mask>
+  </defs>
+  <rect width="110" height="110" fill="#0D2137" rx="16"/>
+  <rect x="24" y="0" width="42" height="110" fill="#E63946" mask="url(#fav-mask)"/>
+  <rect x="66" y="0" width="44" height="110" fill="#F4A261" mask="url(#fav-mask)"/>
+  <rect x="24" y="0" width="86" height="46" fill="#2ECFA3" mask="url(#fav-mask)"/>
+</svg>
