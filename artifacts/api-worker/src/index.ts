@@ -10,6 +10,7 @@ import metricsRoutes from "./routes/metrics";
 import productsRoutes from "./routes/products";
 import adminRoutes from "./routes/admin";
 import waitlistRoutes from "./routes/waitlist";
+import referralsRoutes from "./routes/referrals";
 
 export type Bindings = {
   SUPABASE_URL: string;
@@ -94,6 +95,7 @@ app.route("/api/metrics", metricsRoutes);
 app.route("/api/products", productsRoutes);
 app.route("/api/admin", adminRoutes);
 app.route("/api/waitlist", waitlistRoutes);
+app.route("/api/referrals", referralsRoutes);
 
 /* ─────────── Root ─────────── */
 
