@@ -1,88 +1,31 @@
-const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "https://api.rald.cloud";
+// RALD API Client — wraps the RALD Auth SDK for React components
+// Use raldAuth (from rald-auth-sdk) directly in most cases.
+// This file remains for backward compatibility with auth-context.tsx
+export { raldAuth } from "./rald-auth-sdk";
+export type { RaldUser as User, RaldSession as AuthToken, RaldUserRole as UserRole } from "./rald-auth-sdk";
 
-export type UserRole = "admin" | "operator" | "viewer" | "user" | "merchant";
-
-export interface User {
-  id: string;
-  email: string;
-  phone?: string | null;
-  name: string | null;
-  role: UserRole;
-  emailVerified?: boolean;
-  phoneVerified?: boolean;
-  createdAt: string;
-}
-
-export interface AuthToken {
-  token: string;
-  user: User;
-}
-
-async function apiFetch<T>(path: string, init: RequestInit = {}, token?: string): Promise<T> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...(init.headers as Record<string, string> | undefined ?? {}),
-  };
-  const res = await fetch(`${API_BASE}/api${path}`, { ...init, headers });
-  const data = await res.json() as { error?: string };
-  if (!res.ok) throw new Error(data.error ?? `Request failed: ${res.status}`);
-  return data as T;
-}
+// Legacy api.auth.* shim (used by auth-context.tsx)
+import { raldAuth } from "./rald-auth-sdk";
 
 export const api = {
   auth: {
-    login: (email: string, password: string) =>
-      apiFetch<AuthToken>("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
-
-    register: (input: { name: string; email: string; password: string; phone?: string; role: "user" | "merchant"; businessName?: string }) =>
-      apiFetch<AuthToken>("/auth/register", { method: "POST", body: JSON.stringify(input) }),
-
-    me: (token: string) => apiFetch<User>("/auth/me", {}, token),
-
-    sendOtp: (phone: string) =>
-      apiFetch<{ pinId: string; message: string }>("/auth/send-otp", {
-        method: "POST",
-        body: JSON.stringify({ phone }),
-      }),
-
-    verifyOtp: (pinId: string, pin: string, phone: string) =>
-      apiFetch<AuthToken | { newUser: true; phone: string; otpToken: string }>("/auth/verify-otp", {
-        method: "POST",
-        body: JSON.stringify({ pinId, pin, phone }),
-      }),
-
-    registerFromOtp: (input: { otpToken: string; name: string; email: string; role: "user" | "merchant"; businessName?: string }) =>
-      apiFetch<AuthToken>("/auth/register-from-otp", { method: "POST", body: JSON.stringify(input) }),
-
-    sendEmailOtp: (email: string, token: string) =>
-      apiFetch<{ message: string }>("/auth/send-email-otp", {
-        method: "POST",
-        body: JSON.stringify({ email }),
-      }, token),
-
-    verifyEmailOtp: (code: string, token: string) =>
-      apiFetch<{ message: string; user: User }>("/auth/verify-email-otp", {
-        method: "POST",
-        body: JSON.stringify({ code }),
-      }, token),
-
-    requestPasswordReset: (email: string) =>
-      apiFetch<{ message: string }>("/auth/request-password-reset", {
-        method: "POST",
-        body: JSON.stringify({ email }),
-      }),
-
-    resetPassword: (email: string, code: string, newPassword: string) =>
-      apiFetch<{ message: string }>("/auth/reset-password", {
-        method: "POST",
-        body: JSON.stringify({ email, code, newPassword }),
-      }),
-
-    sessions: (token: string) =>
-      apiFetch<Array<{ id: string; userAgent?: string; ipAddress?: string; lastSeenAt: string; createdAt: string; current: boolean }>>("/auth/sessions", {}, token),
-
-    revokeSession: (sessionId: string, token: string) =>
-      apiFetch<{ message: string }>(`/auth/sessions/${sessionId}`, { method: "DELETE" }, token),
+    login: (email: string, password: string) => raldAuth.login(email, password),
+    register: (input: { name: string; email: string; password: string; phone?: string; role: "user" | "merchant"; businessName?: string }) => raldAuth.register(input),
+    me: (token: string) => {
+      raldAuth.setSession({ token, user: { id: "", email: "", name: null, role: "user", createdAt: "" } });
+      return raldAuth.me();
+    },
+    sendOtp: (phone: string) => raldAuth.sendSmsOtp(phone),
+    verifyOtp: (pinId: string, pin: string, phone: string) => raldAuth.verifySmsOtp(pinId, pin, phone),
+    registerFromOtp: (input: { otpToken: string; name: string; email: string; role: "user" | "merchant"; businessName?: string }) => raldAuth.registerFromSmsOtp(input),
+    sendLoginEmailOtp: (email: string) => raldAuth.sendEmailLoginOtp(email),
+    verifyLoginEmailOtp: (sessionToken: string, code: string) => raldAuth.verifyEmailLoginOtp(sessionToken, code),
+    registerFromEmailOtp: (input: { emailToken: string; name: string; role: "user" | "merchant"; businessName?: string }) => raldAuth.registerFromEmailOtp(input),
+    sendEmailOtp: (email: string, token: string) => { void token; return raldAuth.sendAccountEmailOtp(email); },
+    verifyEmailOtp: (code: string, token: string) => { void token; return raldAuth.verifyAccountEmailOtp(code); },
+    requestPasswordReset: (email: string) => raldAuth.requestPasswordReset(email),
+    resetPassword: (email: string, code: string, newPassword: string) => raldAuth.resetPassword(email, code, newPassword),
+    sessions: (token: string) => { void token; return raldAuth.getSessions(); },
+    revokeSession: (sessionId: string, token: string) => { void token; return raldAuth.revokeSession(sessionId); },
   },
 };
