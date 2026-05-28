@@ -48,6 +48,7 @@ html {
   height: 100%;
   height: -webkit-fill-available;
   background: hsl(224 50% 5%);
+  scroll-behavior: smooth;
 }
 
 body {
@@ -70,88 +71,164 @@ body {
   flex-direction: column;
 }
 
-/* SVG logo — ensure full transparency on all browsers including iOS Safari */
+/* SVG logo */
 .rald-logo-svg {
   background: transparent !important;
   display: block;
   overflow: visible;
 }
 
-/* Inputs */
-.rald-input {
-  width: 100%;
-  background: hsl(var(--input));
-  border: 1px solid hsl(var(--border));
-  padding: 0.75rem 0.875rem;
-  font-size: 1rem;
-  color: hsl(var(--foreground));
-  outline: none;
-  transition: border-color 0.15s;
-  border-radius: 0.5rem;
-  -webkit-appearance: none;
-  min-height: 48px;
-}
-.rald-input:focus { border-color: #2ECFA3; box-shadow: 0 0 0 2px rgba(46,207,163,0.12); }
-.rald-input::placeholder { color: hsl(var(--muted-foreground)); }
+/* ══════════════════════════════════════════════════════════════
+   PAGE LAYOUT — two-column desktop, single-column mobile
+══════════════════════════════════════════════════════════════ */
 
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px hsl(220 30% 10%) inset !important;
-  -webkit-text-fill-color: hsl(210 40% 97%) !important;
-  caret-color: hsl(210 40% 97%);
-  border-color: #2ECFA3 !important;
-}
-
-/* Buttons */
-.rald-btn-primary {
-  width: 100%;
-  background: #2563EB;
-  color: #fff;
-  padding: 0.875rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.15s, transform 0.1s;
-  border-radius: 0.5rem;
-  min-height: 52px;
+/* Root wrapper */
+.rald-root {
+  min-height: 100svh;
+  min-height: 100vh;
   display: flex;
+  background: hsl(224 50% 5%);
+}
+@supports (min-height: 100svh) { .rald-root { min-height: 100svh; } }
+
+/* Brand panel — hidden on mobile, visible on desktop */
+.rald-brand-panel {
+  display: none;
+}
+
+/* Auth panel — full width on mobile */
+.rald-auth-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  justify-content: space-between;
+  padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 28px);
+  min-height: 100svh;
+  min-height: 100vh;
 }
-.rald-btn-primary:hover:not(:disabled) { opacity: 0.92; }
-.rald-btn-primary:active:not(:disabled) { transform: scale(0.99); }
-.rald-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+@supports (min-height: 100svh) { .rald-auth-panel { min-height: 100svh; } }
 
-/* OTP input boxes */
-.otp-input {
-  width: 48px;
-  height: 56px;
+/* Mobile logo — only on mobile */
+.rald-mobile-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+/* Main auth content wrapper */
+.rald-auth-panel > .rald-method-tabs,
+.rald-auth-panel > .tab-switcher,
+.rald-auth-panel > .rald-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Footer */
+.rald-footer {
+  width: 100%;
   text-align: center;
-  font-size: 1.25rem;
-  font-weight: 700;
-  background: hsl(var(--input));
-  border: 1px solid hsl(var(--border));
-  color: hsl(var(--foreground));
-  outline: none;
-  border-radius: 0.5rem;
-  transition: border-color 0.15s;
-  -webkit-appearance: none;
-  caret-color: #2ECFA3;
+  padding-top: 20px;
+  flex-shrink: 0;
 }
-.otp-input:focus { border-color: #2ECFA3; box-shadow: 0 0 0 2px rgba(46,207,163,0.15); }
 
-/* Tab pill switcher */
+/* ── Desktop: show brand panel, shrink auth panel ── */
+@media (min-width: 900px) {
+  .rald-root {
+    overflow: hidden;
+  }
+
+  .rald-brand-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 44%;
+    max-width: 520px;
+    min-height: 100vh;
+    min-height: 100svh;
+    background: hsl(222 50% 6%);
+    border-right: 1px solid hsl(220 30% 11%);
+    padding: 48px 40px 48px 48px;
+    position: sticky;
+    top: 0;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  @supports (min-height: 100svh) { .rald-brand-panel { min-height: 100svh; } }
+
+  .rald-auth-panel {
+    flex: 1;
+    overflow-y: auto;
+    justify-content: center;
+    padding: 48px 48px;
+    gap: 0;
+    min-height: 100vh;
+    min-height: 100svh;
+  }
+
+  /* Method tabs on desktop get more space */
+  .rald-auth-panel > .rald-method-tabs,
+  .rald-auth-panel > .tab-switcher,
+  .rald-auth-panel > .rald-card {
+    max-width: 440px;
+  }
+
+  /* Hide mobile logo on desktop */
+  .rald-mobile-logo {
+    display: none;
+  }
+
+  /* Footer on desktop */
+  .rald-footer {
+    margin-top: 28px;
+  }
+
+  /* Card gets richer shadow on desktop */
+  .rald-card {
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(46,207,163,0.05);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   AUTH METHOD TABS (SMS / Email)
+══════════════════════════════════════════════════════════════ */
+.rald-method-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.rald-method-tab {
+  flex: 1;
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--input));
+  color: hsl(var(--muted-foreground));
+  transition: all 0.15s;
+}
+.rald-method-tab.active {
+  background: rgba(46,207,163,0.12);
+  border-color: rgba(46,207,163,0.35);
+  color: #2ECFA3;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TAB SWITCHER (Sign in / Create account)
+══════════════════════════════════════════════════════════════ */
 .tab-switcher {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0;
   background: hsl(var(--secondary));
   border-radius: 9999px;
   padding: 4px;
   border: 1px solid hsl(var(--border));
+  margin-bottom: 16px;
 }
 .tab-pill {
   padding: 0.6rem 1rem;
@@ -160,53 +237,127 @@ input:-webkit-autofill:focus {
   font-weight: 600;
   text-align: center;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
   border: none;
   background: transparent;
   color: hsl(var(--muted-foreground));
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
 }
 .tab-pill.active {
   background: hsl(var(--card));
   color: hsl(var(--foreground));
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
 }
 
-/* Animations */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* ══════════════════════════════════════════════════════════════
+   AUTH CARD
+══════════════════════════════════════════════════════════════ */
+.rald-card {
+  width: 100%;
+  max-width: 400px;
+  background: hsl(222 45% 8%);
+  border: 1px solid hsl(220 30% 14%);
+  border-radius: 14px;
+  padding: 24px 20px;
 }
-.animate-fade-up { animation: fadeUp 0.35s ease both; }
+@media (min-width: 640px) { .rald-card { padding: 28px 24px; } }
+@media (min-width: 900px) { .rald-card { max-width: 440px; } }
 
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(12px); }
-  to   { opacity: 1; transform: translateX(0); }
+/* Step headings */
+.rald-step-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 6px; color: hsl(210 40% 97%); }
+.rald-step-subtitle { font-size: 0.875rem; color: hsl(215 20% 50%); margin-bottom: 20px; line-height: 1.55; }
+
+/* ══════════════════════════════════════════════════════════════
+   INPUTS
+══════════════════════════════════════════════════════════════ */
+.rald-input {
+  width: 100%;
+  background: hsl(var(--input));
+  border: 1px solid hsl(var(--border));
+  padding: 0.75rem 0.875rem;
+  font-size: 1rem;
+  color: hsl(var(--foreground));
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  border-radius: 0.5rem;
+  -webkit-appearance: none;
+  min-height: 48px;
+  display: block;
 }
-.animate-slide-in { animation: slideIn 0.3s ease both; }
+.rald-input:focus { border-color: #2ECFA3; box-shadow: 0 0 0 3px rgba(46,207,163,0.1); }
+.rald-input::placeholder { color: hsl(var(--muted-foreground)); }
+input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px hsl(220 30% 10%) inset !important;
+  -webkit-text-fill-color: hsl(210 40% 97%) !important;
+  caret-color: hsl(210 40% 97%);
+  border-color: #2ECFA3 !important;
+}
 
 /* Country select */
 .country-select {
   background: hsl(var(--input));
   border: 1px solid hsl(var(--border));
   color: hsl(var(--foreground));
-  border-radius: 0.5rem 0 0 0.5rem;
+  border-radius: 8px 0 0 8px;
   border-right: none;
-  padding: 0 0.75rem;
+  padding: 0 10px;
   min-height: 48px;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
   outline: none;
-  white-space: nowrap;
   flex-shrink: 0;
   -webkit-appearance: none;
-  appearance: none;
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
 }
 
-/* Dashboard cards */
+/* ══════════════════════════════════════════════════════════════
+   OTP BOXES
+══════════════════════════════════════════════════════════════ */
+.otp-input {
+  height: 52px;
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 800;
+  background: hsl(var(--input));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  outline: none;
+  border-radius: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  -webkit-appearance: none;
+  caret-color: #2ECFA3;
+  min-width: 0;
+}
+.otp-input:focus { border-color: #2ECFA3; box-shadow: 0 0 0 3px rgba(46,207,163,0.12); }
+
+/* ══════════════════════════════════════════════════════════════
+   PRIMARY BUTTON — RALD teal
+══════════════════════════════════════════════════════════════ */
+.rald-btn-primary {
+  width: 100%;
+  background: linear-gradient(135deg, #2ECFA3 0%, #1aB489 100%);
+  color: hsl(224 50% 5%);
+  padding: 0.875rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
+  border-radius: 0.5rem;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  letter-spacing: 0.01em;
+  box-shadow: 0 4px 16px rgba(46,207,163,0.28);
+}
+.rald-btn-primary:hover:not(:disabled) { opacity: 0.93; box-shadow: 0 6px 20px rgba(46,207,163,0.38); }
+.rald-btn-primary:active:not(:disabled) { transform: scale(0.985); }
+.rald-btn-primary:disabled { opacity: 0.38; cursor: not-allowed; box-shadow: none; }
+
+/* ══════════════════════════════════════════════════════════════
+   DASHBOARD shared styles
+══════════════════════════════════════════════════════════════ */
 .product-card {
   display: flex;
   align-items: center;
@@ -219,101 +370,24 @@ input:-webkit-autofill:focus {
   color: inherit;
   transition: border-color 0.15s, background 0.15s;
 }
-.product-card:hover { border-color: hsl(var(--muted-foreground) / 0.4); }
+.product-card:hover { border-color: hsl(var(--muted-foreground) / 0.4); background: hsl(var(--card) / 0.8); }
 
-/* ── Auth layout ─────────────────────────────────────────────────────────── */
-.rald-auth-root {
-  min-height: 100svh;
-  min-height: 100vh;
-  background: hsl(224 50% 5%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  /* safe-area insets for iOS */
-  padding-top: env(safe-area-inset-top, 0px);
-  padding-right: env(safe-area-inset-right, 0px);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  padding-left: env(safe-area-inset-left, 0px);
+/* ══════════════════════════════════════════════════════════════
+   ANIMATIONS
+══════════════════════════════════════════════════════════════ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
+.animate-fade-up { animation: fadeUp 0.35s ease both; }
 
-/* Override to prefer svh on modern browsers */
-@supports (min-height: 100svh) {
-  .rald-auth-root { min-height: 100svh; }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(10px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
+.animate-slide-in { animation: slideIn 0.25s ease both; }
 
-/* ── Auth card ───────────────────────────────────────────────────────────── */
-.rald-card {
-  background: hsl(222 45% 8%);
-  border: 1px solid hsl(220 30% 14%);
-  border-radius: 14px;
-  padding: 24px 20px;
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
-
-/* Desktop: wider card + richer shadow */
-@media (min-width: 640px) {
-  .rald-card {
-    padding: 32px 28px;
-    box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(46,207,163,0.06);
-  }
-}
-
-/* ── Step typography ─────────────────────────────────────────────────────── */
-.rald-step-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin-bottom: 6px;
-  color: hsl(210 40% 97%);
-}
-
-.rald-step-subtitle {
-  font-size: 0.875rem;
-  color: hsl(215 20% 52%);
-  margin-bottom: 20px;
-  line-height: 1.55;
-}
-
-/* ── OTP boxes: fluid on small screens ──────────────────────────────────── */
-.otp-input {
-  flex: 1;
-  min-width: 0;
-  max-width: 56px;
-  aspect-ratio: 1;
-  text-align: center;
-  font-size: 1.25rem;
-  font-weight: 700;
-  background: hsl(var(--input));
-  border: 1px solid hsl(var(--border));
-  color: hsl(var(--foreground));
-  outline: none;
-  border-radius: 0.5rem;
-  transition: border-color 0.15s;
-  -webkit-appearance: none;
-  caret-color: #2ECFA3;
-  height: 52px;
-}
-.otp-input:focus { border-color: #2ECFA3; box-shadow: 0 0 0 2px rgba(46,207,163,0.15); }
-
-/* ── Primary button: RALD teal ───────────────────────────────────────────── */
-.rald-btn-primary {
-  width: 100%;
-  background: linear-gradient(135deg, #2ECFA3 0%, #1DB489 100%);
-  color: hsl(224 50% 5%);
-  padding: 0.875rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
-  border-radius: 0.5rem;
-  min-height: 52px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  letter-spacing: 0.01em;
-  box-shadow: 0 4px 14px rgba(46,207,163,0.25);
-}
-.rald-btn-primary:hover:not(:disabled) { opacity: 0.93; box-shadow: 0 4px 20px rgba(46,207,163,0.35); }
-.rald-btn-primary:active:not(:disabled) { transform: scale(0.99); }
-.rald-btn-primary:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
