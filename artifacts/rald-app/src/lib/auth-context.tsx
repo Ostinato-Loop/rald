@@ -1,5 +1,10 @@
+// RALD Auth Context — wraps RALD Auth SDK for React tree
+// LILCKY STUDIO LIMITED
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { api, User } from "./api";
+import { raldAuth } from "./rald-auth-sdk";
+import type { RaldUser } from "./rald-auth-sdk";
+
+export type User = RaldUser;
 
 interface AuthContextValue {
   user: User | null;
@@ -17,29 +22,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem("rald_token");
-    if (stored) {
-      api.auth
-        .me(stored)
-        .then((u) => {
-          setUser(u);
-          setToken(stored);
-        })
-        .catch(() => localStorage.removeItem("rald_token"))
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    // Restore session from localStorage via RALD SDK
+    raldAuth.init()
+      .then((session) => {
+        if (session) { setUser(session.user); setToken(session.token); }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+
+    // Subscribe to future auth state changes (e.g. from other tabs)
+    return raldAuth.onAuthStateChange((session) => {
+      setUser(session?.user ?? null);
+      setToken(session?.token ?? null);
+    });
   }, []);
 
   const login = (t: string, u: User) => {
-    localStorage.setItem("rald_token", t);
+    raldAuth.setSession({ token: t, user: u });
+    localStorage.setItem("rald_auth_token", t);
     setToken(t);
     setUser(u);
   };
 
   const logout = () => {
-    localStorage.removeItem("rald_token");
+    raldAuth.logout();
     setToken(null);
     setUser(null);
   };
