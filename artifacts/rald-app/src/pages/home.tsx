@@ -1,11 +1,23 @@
+// app.rald.cloud — RALD Identity Portal
+// LILCKY STUDIO LIMITED — Sovereign Authentication
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
 import { RaldLogo } from "@/components/logo";
 import { useAuth } from "@/lib/auth-context";
-import { api } from "@/lib/api";
+import { raldAuth, type RaldNewUserSms, type RaldNewUserEmail } from "@/lib/rald-auth-sdk";
 
-type Tab = "signin" | "create";
-type Step = "phone" | "otp" | "create" | "email-otp" | "password" | "forgot";
+// ── Types ────────────────────────────────────────────────────────────────────
+type AuthMethod = "sms" | "email";
+type Step =
+  | "method"    // choose SMS or Email
+  | "phone"     // enter phone for SMS
+  | "sms-otp"   // enter SMS OTP
+  | "email-in"  // enter email for Email OTP
+  | "email-otp" // enter Email OTP
+  | "create"    // fill name/role after phone verify
+  | "create-email" // fill name/role after email verify
+  | "password"  // password login
+  | "forgot"    // password reset
 
 const COUNTRIES = [
   { flag: "🇳🇬", code: "+234", name: "Nigeria" },
@@ -22,122 +34,139 @@ const COUNTRIES = [
   { flag: "🇺🇸", code: "+1", name: "United States" },
 ];
 
-function OtpBoxes({
-  value,
-  onChange,
-  autoFocusFirst = false,
-}: {
-  value: string[];
-  onChange: (v: string[]) => void;
-  autoFocusFirst?: boolean;
-}) {
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([null, null, null, null, null, null]);
-
-  useEffect(() => {
-    if (autoFocusFirst) inputRefs.current[0]?.focus();
-  }, [autoFocusFirst]);
-
-  const handleChange = (i: number, raw: string) => {
-    const digit = raw.replace(/\D/g, "").slice(-1);
-    const next = [...value];
-    next[i] = digit;
-    onChange(next);
-    if (digit && i < 5) inputRefs.current[i + 1]?.focus();
+// ── OTP Boxes ─────────────────────────────────────────────────────────────────
+function OtpBoxes({ value, onChange, autoFocusFirst = false }: { value: string[]; onChange: (v: string[]) => void; autoFocusFirst?: boolean }) {
+  const refs = useRef<(HTMLInputElement | null)[]>([]);
+  useEffect(() => { if (autoFocusFirst) refs.current[0]?.focus(); }, [autoFocusFirst]);
+  const change = (i: number, raw: string) => {
+    const d = raw.replace(/\D/g, "").slice(-1);
+    const next = [...value]; next[i] = d; onChange(next);
+    if (d && i < 5) refs.current[i + 1]?.focus();
   };
-
-  const handleKeyDown = (i: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !value[i] && i > 0) inputRefs.current[i - 1]?.focus();
-    if (e.key === "ArrowLeft" && i > 0) inputRefs.current[i - 1]?.focus();
-    if (e.key === "ArrowRight" && i < 5) inputRefs.current[i + 1]?.focus();
+  const keydown = (i: number, e: React.KeyboardEvent) => {
+    if (e.key === "Backspace" && !value[i] && i > 0) refs.current[i - 1]?.focus();
+    if (e.key === "ArrowLeft" && i > 0) refs.current[i - 1]?.focus();
+    if (e.key === "ArrowRight" && i < 5) refs.current[i + 1]?.focus();
   };
-
-  const handlePaste = (e: React.ClipboardEvent) => {
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    if (pasted.length > 0) {
-      const next = [...value];
-      pasted.split("").forEach((ch, idx) => { if (idx < 6) next[idx] = ch; });
-      onChange(next);
-      inputRefs.current[Math.min(pasted.length, 5)]?.focus();
-    }
+  const paste = (e: React.ClipboardEvent) => {
+    const p = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (p.length) { const next = [...value]; p.split("").forEach((c, i) => { if (i < 6) next[i] = c; }); onChange(next); refs.current[Math.min(p.length, 5)]?.focus(); }
     e.preventDefault();
   };
-
   return (
-    <div style={{ display: "flex", gap: 8, justifyContent: "space-between" }} onPaste={handlePaste}>
+    <div style={{ display: "flex", gap: 8 }} onPaste={paste}>
       {value.map((v, i) => (
-        <input
-          key={i}
-          ref={(el) => { inputRefs.current[i] = el; }}
-          type="text"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          maxLength={1}
-          value={v}
-          onChange={(e) => handleChange(i, e.target.value)}
-          onKeyDown={(e) => handleKeyDown(i, e)}
-          className="otp-input"
-          autoComplete={i === 0 ? "one-time-code" : "off"}
-          style={{ flex: 1, minWidth: 0 }}
-        />
+        <input key={i} ref={el => { refs.current[i] = el; }} type="text" inputMode="numeric" pattern="[0-9]*"
+          maxLength={1} value={v} onChange={e => change(i, e.target.value)} onKeyDown={e => keydown(i, e)}
+          className="otp-input" autoComplete={i === 0 ? "one-time-code" : "off"} style={{ flex: 1, minWidth: 0 }} />
       ))}
     </div>
   );
 }
 
-function ErrorMsg({ msg }: { msg: string }) {
-  if (!msg) return null;
+// ── Small helpers ─────────────────────────────────────────────────────────────
+const Err = ({ msg }: { msg: string }) => !msg ? null : (
+  <p style={{ fontSize: "0.8rem", color: "#E63946", marginBottom: 12, padding: "8px 12px", background: "rgba(230,57,70,0.08)", borderRadius: 6, border: "1px solid rgba(230,57,70,0.2)" }}>{msg}</p>
+);
+const Info = ({ msg }: { msg: string }) => !msg ? null : (
+  <p style={{ fontSize: "0.8rem", color: "#2ECFA3", marginBottom: 12, padding: "8px 12px", background: "rgba(46,207,163,0.08)", borderRadius: 6, border: "1px solid rgba(46,207,163,0.2)" }}>{msg}</p>
+);
+const LinkBtn = ({ onClick, children }: { onClick: () => void; children: React.ReactNode }) => (
+  <button type="button" onClick={onClick} style={{ background: "none", border: "none", color: "#2ECFA3", fontSize: "0.875rem", cursor: "pointer", padding: 0, textDecoration: "none" }}>{children}</button>
+);
+const GhostBtn = ({ onClick, children }: { onClick: () => void; children: React.ReactNode }) => (
+  <button type="button" onClick={onClick} style={{ background: "none", border: "none", color: "hsl(215 20% 50%)", fontSize: "0.8rem", cursor: "pointer", padding: 0 }}>{children}</button>
+);
+
+// ── Brand panel (desktop left) ────────────────────────────────────────────────
+function BrandPanel() {
+  const features = [
+    { icon: "📱", label: "SMS OTP", sub: "12 African carriers" },
+    { icon: "📧", label: "Email OTP", sub: "Instant delivery" },
+    { icon: "🔐", label: "JWT Auth", sub: "Edge-native" },
+    { icon: "⚡", label: "Cloudflare", sub: "Global edge" },
+    { icon: "🛡️", label: "Zero-storage", sub: "Stateless OTPs" },
+    { icon: "🌍", label: "Africa-first", sub: "Built for scale" },
+  ];
   return (
-    <p style={{
-      fontSize: "0.8rem", color: "#E63946", marginBottom: 12,
-      padding: "8px 12px", background: "rgba(230,57,70,0.08)",
-      borderRadius: 6, border: "1px solid rgba(230,57,70,0.2)",
-    }}>{msg}</p>
+    <div className="rald-brand-panel">
+      {/* Logo */}
+      <div style={{ marginBottom: 32 }}>
+        <RaldLogo dark className="h-10 w-auto" />
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#2ECFA3", display: "inline-block", boxShadow: "0 0 6px #2ECFA3" }} />
+          <span style={{ fontSize: "0.7rem", color: "#2ECFA3", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>Live · Production</span>
+        </div>
+      </div>
+
+      {/* Headline */}
+      <div style={{ marginBottom: 32 }}>
+        <h1 style={{ fontSize: "1.75rem", fontWeight: 900, lineHeight: 1.2, color: "#F0F4F8", margin: "0 0 12px", letterSpacing: "-0.02em" }}>
+          Sovereign Identity<br />
+          <span style={{ color: "#2ECFA3" }}>for Africa's</span><br />
+          Digital Economy
+        </h1>
+        <p style={{ fontSize: "0.875rem", color: "hsl(215 20% 50%)", lineHeight: 1.6, margin: 0 }}>
+          RALD is the authentication layer for the entire LILCKY STUDIO ecosystem — phone-first, email-optional, always encrypted.
+        </p>
+      </div>
+
+      {/* Feature grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 32 }}>
+        {features.map(f => (
+          <div key={f.label} style={{ background: "hsl(222 45% 7%)", border: "1px solid hsl(220 30% 13%)", borderRadius: 10, padding: "12px 14px", display: "flex", alignItems: "flex-start", gap: 10 }}>
+            <span style={{ fontSize: "1.1rem", lineHeight: 1 }}>{f.icon}</span>
+            <div>
+              <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#F0F4F8" }}>{f.label}</div>
+              <div style={{ fontSize: "0.7rem", color: "hsl(215 20% 45%)", marginTop: 2 }}>{f.sub}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Owner badge */}
+      <div style={{ borderTop: "1px solid hsl(220 30% 13%)", paddingTop: 20 }}>
+        <p style={{ fontSize: "0.7rem", color: "hsl(215 20% 38%)", margin: "0 0 8px", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 600 }}>Built by</p>
+        <div style={{ background: "hsl(222 45% 7%)", border: "1px solid hsl(220 30% 13%)", borderRadius: 8, padding: "10px 14px", display: "inline-block" }}>
+          <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#F0F4F8", letterSpacing: "0.02em" }}>LILCKY STUDIO LIMITED</span>
+        </div>
+        <p style={{ fontSize: "0.7rem", color: "hsl(215 20% 35%)", margin: "12px 0 0", lineHeight: 1.5 }}>
+          "Building sovereign digital infrastructure for Africa — starting with identity."
+        </p>
+      </div>
+    </div>
   );
 }
 
-function LinkBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button type="button" onClick={onClick} style={{
-      background: "none", border: "none", color: "#2ECFA3",
-      fontSize: "0.875rem", cursor: "pointer", padding: 0,
-    }}>
-      {children}
-    </button>
-  );
-}
-
-function GhostBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button type="button" onClick={onClick} style={{
-      background: "none", border: "none", color: "hsl(215 20% 52%)",
-      fontSize: "0.8rem", cursor: "pointer", padding: 0,
-    }}>
-      {children}
-    </button>
-  );
-}
-
+// ── Main component ────────────────────────────────────────────────────────────
 export default function Home() {
   const { user, loading, login } = useAuth();
   const [, setLocation] = useLocation();
-  const [tab, setTab] = useState<Tab>("signin");
+
+  // state
+  const [method, setMethod] = useState<AuthMethod>("sms");
   const [step, setStep] = useState<Step>("phone");
+  const [tab, setTab] = useState<"signin" | "create">("signin");
   const [country, setCountry] = useState("+234");
   const [phone, setPhone] = useState("");
   const [pinId, setPinId] = useState("");
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [name, setName] = useState("");
+  const [smsOtp, setSmsOtp] = useState(["","","","","",""]);
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [emailSessionToken, setEmailSessionToken] = useState("");
+  const [emailOtp, setEmailOtp] = useState(["","","","","",""]);
+  const [name, setName] = useState("");
   const [role, setRole] = useState<"user" | "merchant">("user");
-  const [otpToken, setOtpToken] = useState("");
+  const [businessName, setBusinessName] = useState("");
+  const [smsOtpToken, setSmsOtpToken] = useState("");
+  const [emailVerifyToken, setEmailVerifyToken] = useState("");
+  const [password, setPassword] = useState("");
+  const [forgotCode, setForgotCode] = useState("");
+  const [newPwd, setNewPwd] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [info, setInfo] = useState("");
-  const [resendCooldown, setResendCooldown] = useState(0);
-  const [forgotCode, setForgotCode] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [cooldown, setCooldown] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (!loading && user) {
@@ -148,343 +177,362 @@ export default function Home() {
   }, [user, loading, setLocation]);
 
   const startCooldown = useCallback(() => {
-    setResendCooldown(60);
-    if (cooldownRef.current) clearInterval(cooldownRef.current);
-    cooldownRef.current = setInterval(() => {
-      setResendCooldown((s) => {
-        if (s <= 1) { clearInterval(cooldownRef.current!); return 0; }
-        return s - 1;
-      });
-    }, 1000);
+    setCooldown(60);
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => setCooldown(s => { if (s <= 1) { clearInterval(timerRef.current!); return 0; } return s - 1; }), 1000);
   }, []);
 
-  const resetFlow = useCallback(() => {
-    setStep("phone"); setOtp(["", "", "", "", "", ""]);
-    setPinId(""); setOtpToken(""); setErr(""); setInfo("");
-    setPhone(""); setName(""); setEmail(""); setPassword("");
-    setForgotCode(""); setNewPassword(""); setResendCooldown(0);
-    if (cooldownRef.current) clearInterval(cooldownRef.current);
-  }, []);
+  const reset = useCallback(() => {
+    setStep(method === "sms" ? "phone" : "email-in");
+    setSmsOtp(["","","","","",""]); setEmailOtp(["","","","","",""]);
+    setPinId(""); setSmsOtpToken(""); setEmailSessionToken(""); setEmailVerifyToken("");
+    setErr(""); setInfo(""); setPhone(""); setEmail(""); setName(""); setPassword("");
+    setForgotCode(""); setNewPwd(""); setCooldown(0);
+    if (timerRef.current) clearInterval(timerRef.current);
+  }, [method]);
 
-  const switchTab = useCallback((t: Tab) => { setTab(t); resetFlow(); }, [resetFlow]);
+  const switchMethod = (m: AuthMethod) => {
+    setMethod(m);
+    setStep(m === "sms" ? "phone" : "email-in");
+    setErr(""); setInfo("");
+    setSmsOtp(["","","","","",""]); setEmailOtp(["","","","","",""]);
+  };
+
+  const switchTab = (t: "signin" | "create") => { setTab(t); reset(); };
   const fullPhone = `${country}${phone.replace(/^0/, "")}`;
+  const selectedCountry = COUNTRIES.find(c => c.code === country) ?? COUNTRIES[0]!;
 
-  // ── Handlers ────────────────────────────────────────────────────────────────
-  const handleSendOtp = async () => {
+  // ── SMS handlers ─────────────────────────────────────────────────────────
+  const handleSendSms = async () => {
     if (!phone.trim()) { setErr("Enter your phone number"); return; }
     setBusy(true); setErr("");
     try {
-      const res = await api.auth.sendOtp(fullPhone);
-      setPinId(res.pinId); setStep("otp");
-      setOtp(["", "", "", "", "", ""]); startCooldown();
+      const res = await raldAuth.sendSmsOtp(fullPhone);
+      setPinId(res.pinId); setStep("sms-otp"); setSmsOtp(["","","","","",""]); startCooldown();
     } catch (e: unknown) { setErr(e instanceof Error ? e.message : "Failed to send code"); }
     finally { setBusy(false); }
   };
 
-  const handleVerifyOtp = async () => {
-    const code = otp.join("");
+  const handleVerifySms = async () => {
+    const code = smsOtp.join("");
     if (code.length < 6) { setErr("Enter the 6-digit code"); return; }
     setBusy(true); setErr("");
     try {
-      const res = await api.auth.verifyOtp(pinId, code, fullPhone);
+      const res = await raldAuth.verifySmsOtp(pinId, code, fullPhone);
       if ("token" in res) { login(res.token, res.user); }
-      else { setOtpToken(res.otpToken); setStep("create"); }
+      else { setSmsOtpToken((res as RaldNewUserSms).otpToken); setStep("create"); }
     } catch (e: unknown) { setErr(e instanceof Error ? e.message : "Invalid code"); }
     finally { setBusy(false); }
   };
 
-  const handleCreate = async () => {
-    if (!name.trim()) { setErr("Enter your name"); return; }
+  const handleCreateFromSms = async () => {
+    if (!name.trim()) { setErr("Enter your full name"); return; }
     if (!email.trim()) { setErr("Enter your email address"); return; }
     setBusy(true); setErr("");
     try {
-      const res = await api.auth.registerFromOtp({ otpToken, name, email, role });
+      const res = await raldAuth.registerFromSmsOtp({ otpToken: smsOtpToken, name, email, role, businessName: businessName || undefined });
       login(res.token, res.user);
     } catch (e: unknown) { setErr(e instanceof Error ? e.message : "Registration failed"); }
     finally { setBusy(false); }
   };
 
+  // ── Email OTP handlers ───────────────────────────────────────────────────
+  const handleSendEmailOtp = async () => {
+    if (!email.trim()) { setErr("Enter your email address"); return; }
+    setBusy(true); setErr("");
+    try {
+      const res = await raldAuth.sendEmailLoginOtp(email);
+      setEmailSessionToken(res.sessionToken); setStep("email-otp"); setEmailOtp(["","","","","",""]); startCooldown();
+    } catch (e: unknown) { setErr(e instanceof Error ? e.message : "Failed to send code"); }
+    finally { setBusy(false); }
+  };
+
+  const handleVerifyEmailOtp = async () => {
+    const code = emailOtp.join("");
+    if (code.length < 6) { setErr("Enter the 6-digit code"); return; }
+    setBusy(true); setErr("");
+    try {
+      const res = await raldAuth.verifyEmailLoginOtp(emailSessionToken, code);
+      if ("token" in res) { login(res.token, res.user); }
+      else { setEmailVerifyToken((res as RaldNewUserEmail).emailToken); setStep("create-email"); }
+    } catch (e: unknown) { setErr(e instanceof Error ? e.message : "Invalid code"); }
+    finally { setBusy(false); }
+  };
+
+  const handleCreateFromEmail = async () => {
+    if (!name.trim()) { setErr("Enter your full name"); return; }
+    setBusy(true); setErr("");
+    try {
+      const res = await raldAuth.registerFromEmailOtp({ emailToken: emailVerifyToken, name, role, businessName: businessName || undefined });
+      login(res.token, res.user);
+    } catch (e: unknown) { setErr(e instanceof Error ? e.message : "Registration failed"); }
+    finally { setBusy(false); }
+  };
+
+  // ── Password handlers ────────────────────────────────────────────────────
   const handlePasswordLogin = async () => {
     if (!email.trim()) { setErr("Enter your email"); return; }
     if (!password) { setErr("Enter your password"); return; }
     setBusy(true); setErr("");
-    try {
-      const res = await api.auth.login(email, password);
-      login(res.token, res.user);
-    } catch (e: unknown) { setErr(e instanceof Error ? e.message : "Invalid email or password"); }
+    try { const res = await raldAuth.login(email, password); login(res.token, res.user); }
+    catch (e: unknown) { setErr(e instanceof Error ? e.message : "Invalid credentials"); }
     finally { setBusy(false); }
   };
 
   const handleForgotRequest = async () => {
     if (!email.trim()) { setErr("Enter your email"); return; }
     setBusy(true); setErr(""); setInfo("");
-    try {
-      await api.auth.requestPasswordReset(email);
-      setInfo("If this email has an account, a 6-digit reset code was sent.");
-    } catch { setInfo("If this email has an account, a 6-digit reset code was sent."); }
+    try { await raldAuth.requestPasswordReset(email); setInfo("If this email has an account, a 6-digit code was sent."); }
+    catch { setInfo("If this email has an account, a 6-digit code was sent."); }
     finally { setBusy(false); }
   };
 
   const handleForgotReset = async () => {
-    if (!forgotCode.trim() || forgotCode.length < 6) { setErr("Enter the 6-digit code"); return; }
-    if (!newPassword || newPassword.length < 8) { setErr("Password must be at least 8 characters"); return; }
+    if (forgotCode.length < 6) { setErr("Enter the 6-digit code"); return; }
+    if (newPwd.length < 8) { setErr("Password must be at least 8 characters"); return; }
     setBusy(true); setErr("");
     try {
-      await api.auth.resetPassword(email, forgotCode, newPassword);
-      setInfo("Password updated. You can now sign in.");
-      setStep("password"); setForgotCode(""); setNewPassword("");
-    } catch (e: unknown) { setErr(e instanceof Error ? e.message : "Reset failed. Try again."); }
+      await raldAuth.resetPassword(email, forgotCode, newPwd);
+      setInfo("Password updated. You can now sign in."); setStep("password"); setForgotCode(""); setNewPwd("");
+    } catch (e: unknown) { setErr(e instanceof Error ? e.message : "Reset failed"); }
     finally { setBusy(false); }
   };
 
-  // ── Loading ──────────────────────────────────────────────────────────────────
-  if (loading) {
-    return (
-      <div style={{ minHeight: "100svh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <RaldLogo dark className="h-9 w-auto animate-pulse" />
-      </div>
-    );
-  }
+  // ── Loading ──────────────────────────────────────────────────────────────
+  if (loading) return (
+    <div style={{ minHeight: "100svh", display: "flex", alignItems: "center", justifyContent: "center", background: "hsl(224 50% 5%)" }}>
+      <RaldLogo dark className="h-10 w-auto" style={{ animation: "pulse 2s infinite" }} />
+    </div>
+  );
 
-  const selectedCountry = COUNTRIES.find((c) => c.code === country) ?? COUNTRIES[0];
-
+  // ── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="rald-auth-root">
-      {/* Top bar */}
-      <div style={{ width: "100%", display: "flex", justifyContent: "flex-end", padding: "12px 16px", flexShrink: 0 }}>
-        <div style={{ width: 36, height: 36 }} />
-      </div>
+    <div className="rald-root">
+      {/* Brand panel — desktop only */}
+      <BrandPanel />
 
-      {/* Center panel */}
-      <div
-        className="animate-fade-up"
-        style={{ width: "100%", maxWidth: 420, padding: "0 20px", flex: "0 0 auto" }}
-      >
-        {/* Logo + tagline */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 24 }}>
-          <RaldLogo dark className="h-10 w-auto" />
-          <p style={{
-            marginTop: 10, fontSize: "0.65rem", fontWeight: 600,
-            letterSpacing: "0.22em", color: "hsl(215 20% 45%)",
-            textTransform: "uppercase", textAlign: "center",
-          }}>
+      {/* Auth panel */}
+      <div className="rald-auth-panel">
+        {/* Mobile logo */}
+        <div className="rald-mobile-logo">
+          <RaldLogo dark className="h-9 w-auto" />
+          <p style={{ marginTop: 8, fontSize: "0.62rem", fontWeight: 600, letterSpacing: "0.2em", color: "hsl(215 20% 42%)", textTransform: "uppercase", textAlign: "center" }}>
             Root Authentication &amp; Login Directory
           </p>
         </div>
 
-        {/* Tabs */}
+        {/* Auth method tabs (SMS / Email) */}
+        <div className="rald-method-tabs">
+          {(["sms", "email"] as const).map(m => (
+            <button key={m} type="button"
+              className={`rald-method-tab${method === m ? " active" : ""}`}
+              onClick={() => { switchMethod(m); setTab("signin"); }}>
+              {m === "sms" ? "📱 Phone" : "📧 Email"}
+            </button>
+          ))}
+        </div>
+
+        {/* Sign in / Create tabs */}
         <div className="tab-switcher" style={{ marginBottom: 16 }}>
-          {(["signin", "create"] as const).map((t) => (
+          {(["signin", "create"] as const).map(t => (
             <button key={t} type="button" className={`tab-pill${tab === t ? " active" : ""}`} onClick={() => switchTab(t)}>
               {t === "signin" ? "Sign in" : "Create account"}
             </button>
           ))}
         </div>
 
-        {/* Card */}
+        {/* Auth card */}
         <div className="rald-card">
 
-          {/* ── Phone step ── */}
-          {step === "phone" && (
+          {/* ── SMS: Phone step ── */}
+          {method === "sms" && step === "phone" && (
             <div className="animate-slide-in">
               <h2 className="rald-step-title">{tab === "signin" ? "Welcome back" : "Create your account"}</h2>
-              <p className="rald-step-subtitle">
-                {tab === "signin" ? "Enter your phone to receive a verification code" : "We'll send a code to verify your number"}
-              </p>
-
+              <p className="rald-step-subtitle">Enter your phone number to receive a verification code</p>
               <div style={{ display: "flex", marginBottom: 16 }}>
-                <select
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  className="country-select"
-                >
-                  {COUNTRIES.map((c) => (
-                    <option key={c.code} value={c.code}>{c.flag} {c.code}</option>
-                  ))}
+                <select value={country} onChange={e => setCountry(e.target.value)} className="country-select">
+                  {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.flag} {c.code}</option>)}
                 </select>
-                <input
-                  type="tel"
-                  inputMode="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSendOtp()}
-                  placeholder="801 234 5678"
-                  style={{
-                    flex: 1, background: "hsl(220 30% 10%)",
-                    border: "1px solid hsl(220 30% 14%)",
-                    borderRadius: "0 8px 8px 0",
-                    padding: "0 14px", minHeight: 48, fontSize: "1rem",
-                    color: "hsl(210 40% 97%)", outline: "none",
-                  }}
-                />
+                <input type="tel" inputMode="tel" value={phone} onChange={e => setPhone(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && handleSendSms()}
+                  placeholder="801 234 5678" className="rald-input" style={{ flex: 1, borderRadius: "0 8px 8px 0", borderLeft: "none" }} />
               </div>
-
-              <ErrorMsg msg={err} />
-
-              <button type="button" className="rald-btn-primary" onClick={handleSendOtp} disabled={busy} style={{ marginBottom: 14 }}>
+              <Err msg={err} />
+              <button type="button" className="rald-btn-primary" onClick={handleSendSms} disabled={busy} style={{ marginBottom: 14 }}>
                 {busy ? "Sending…" : <><span>Send code</span><span>→</span></>}
               </button>
-
-              {tab === "signin" && (
-                <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-                  <LinkBtn onClick={() => { setStep("password"); setErr(""); }}>Use password instead</LinkBtn>
-                </div>
-              )}
+              {tab === "signin" && <LinkBtn onClick={() => { setStep("password"); setErr(""); }}>Use password instead</LinkBtn>}
             </div>
           )}
 
-          {/* ── OTP step ── */}
-          {step === "otp" && (
+          {/* ── SMS: OTP step ── */}
+          {method === "sms" && step === "sms-otp" && (
             <div className="animate-slide-in">
               <h2 className="rald-step-title">Enter your code</h2>
-              <p className="rald-step-subtitle">
-                Sent to <strong style={{ color: "hsl(210 40% 97%)" }}>{selectedCountry.flag} {country} {phone}</strong>
-              </p>
-
-              <div style={{ marginBottom: 20 }}>
-                <OtpBoxes value={otp} onChange={setOtp} autoFocusFirst />
-              </div>
-
-              <ErrorMsg msg={err} />
-
-              <button type="button" className="rald-btn-primary" onClick={handleVerifyOtp}
-                disabled={busy || otp.join("").length < 6} style={{ marginBottom: 14 }}>
+              <p className="rald-step-subtitle">Sent to <strong style={{ color: "#F0F4F8" }}>{selectedCountry.flag} {country} {phone}</strong></p>
+              <div style={{ marginBottom: 20 }}><OtpBoxes value={smsOtp} onChange={setSmsOtp} autoFocusFirst /></div>
+              <Err msg={err} />
+              <button type="button" className="rald-btn-primary" onClick={handleVerifySms} disabled={busy || smsOtp.join("").length < 6} style={{ marginBottom: 14 }}>
                 {busy ? "Verifying…" : "Verify & continue"}
               </button>
-
               <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-                <GhostBtn onClick={() => { setStep("phone"); setErr(""); setOtp(["","","","","",""]); }}>← Change number</GhostBtn>
-                <span style={{ color: "hsl(215 20% 35%)", fontSize: "0.75rem" }}>·</span>
-                <button type="button"
-                  onClick={resendCooldown > 0 ? undefined : handleSendOtp}
-                  disabled={resendCooldown > 0}
-                  style={{
-                    background: "none", border: "none",
-                    color: resendCooldown > 0 ? "hsl(215 20% 40%)" : "#2ECFA3",
-                    fontSize: "0.8rem", cursor: resendCooldown > 0 ? "not-allowed" : "pointer", padding: 0,
-                  }}>
-                  {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
+                <GhostBtn onClick={() => { setStep("phone"); setErr(""); setSmsOtp(["","","","","",""]); }}>← Change number</GhostBtn>
+                <span style={{ color: "hsl(215 20% 30%)" }}>·</span>
+                <button type="button" onClick={cooldown > 0 ? undefined : handleSendSms} disabled={cooldown > 0}
+                  style={{ background: "none", border: "none", color: cooldown > 0 ? "hsl(215 20% 38%)" : "#2ECFA3", fontSize: "0.8rem", cursor: cooldown > 0 ? "not-allowed" : "pointer", padding: 0 }}>
+                  {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
                 </button>
               </div>
             </div>
           )}
 
-          {/* ── Create account step ── */}
+          {/* ── SMS: Create account step ── */}
           {step === "create" && (
             <div className="animate-slide-in">
               <h2 className="rald-step-title">Almost there</h2>
-              <p className="rald-step-subtitle">Phone verified ✓ — fill in your details to finish</p>
-
-              <input type="text" value={name} onChange={(e) => setName(e.target.value)}
-                placeholder="Full name" className="rald-input" style={{ marginBottom: 10 }} autoFocus />
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email address" className="rald-input" style={{ marginBottom: 14 }} />
-
-              <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-                {(["user", "merchant"] as const).map((r) => (
-                  <button key={r} type="button" onClick={() => setRole(r)} style={{
-                    flex: 1, padding: "10px 12px", borderRadius: 8, fontSize: "0.8rem", fontWeight: 600,
-                    border: `1px solid ${role === r ? "#2ECFA3" : "hsl(220 30% 14%)"}`,
-                    background: role === r ? "rgba(46,207,163,0.1)" : "hsl(220 30% 10%)",
-                    color: role === r ? "#2ECFA3" : "hsl(215 20% 52%)",
-                    cursor: "pointer", transition: "all 0.15s",
-                  }}>
-                    {r === "user" ? "🙋 Personal" : "🏪 Business"}
-                  </button>
-                ))}
-              </div>
-
-              <ErrorMsg msg={err} />
-              <button type="button" className="rald-btn-primary" onClick={handleCreate} disabled={busy}>
+              <p className="rald-step-subtitle">Phone verified ✓ — complete your profile</p>
+              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Full name" className="rald-input" style={{ marginBottom: 10 }} autoFocus />
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email address" className="rald-input" style={{ marginBottom: 14 }} />
+              <RoleSelector role={role} onChange={setRole} businessName={businessName} onBizName={setBusinessName} />
+              <Err msg={err} />
+              <button type="button" className="rald-btn-primary" onClick={handleCreateFromSms} disabled={busy}>
                 {busy ? "Creating account…" : "Create account →"}
               </button>
             </div>
           )}
 
-          {/* ── Password login step ── */}
+          {/* ── Email: Enter email step ── */}
+          {method === "email" && step === "email-in" && (
+            <div className="animate-slide-in">
+              <h2 className="rald-step-title">{tab === "signin" ? "Welcome back" : "Create your account"}</h2>
+              <p className="rald-step-subtitle">Enter your email to receive a 6-digit sign-in code</p>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleSendEmailOtp()}
+                placeholder="you@example.com" className="rald-input" style={{ marginBottom: 16 }} autoFocus />
+              <Err msg={err} />
+              <button type="button" className="rald-btn-primary" onClick={handleSendEmailOtp} disabled={busy} style={{ marginBottom: 14 }}>
+                {busy ? "Sending…" : <><span>Send code</span><span>→</span></>}
+              </button>
+              {tab === "signin" && <LinkBtn onClick={() => { setStep("password"); setErr(""); }}>Use password instead</LinkBtn>}
+            </div>
+          )}
+
+          {/* ── Email: OTP step ── */}
+          {method === "email" && step === "email-otp" && (
+            <div className="animate-slide-in">
+              <h2 className="rald-step-title">Check your inbox</h2>
+              <p className="rald-step-subtitle">Code sent to <strong style={{ color: "#F0F4F8" }}>{email}</strong></p>
+              <div style={{ marginBottom: 20 }}><OtpBoxes value={emailOtp} onChange={setEmailOtp} autoFocusFirst /></div>
+              <Err msg={err} />
+              <button type="button" className="rald-btn-primary" onClick={handleVerifyEmailOtp} disabled={busy || emailOtp.join("").length < 6} style={{ marginBottom: 14 }}>
+                {busy ? "Verifying…" : "Verify & continue"}
+              </button>
+              <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+                <GhostBtn onClick={() => { setStep("email-in"); setErr(""); setEmailOtp(["","","","","",""]); }}>← Change email</GhostBtn>
+                <span style={{ color: "hsl(215 20% 30%)" }}>·</span>
+                <button type="button" onClick={cooldown > 0 ? undefined : handleSendEmailOtp} disabled={cooldown > 0}
+                  style={{ background: "none", border: "none", color: cooldown > 0 ? "hsl(215 20% 38%)" : "#2ECFA3", fontSize: "0.8rem", cursor: cooldown > 0 ? "not-allowed" : "pointer", padding: 0 }}>
+                  {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Email: Create account step ── */}
+          {step === "create-email" && (
+            <div className="animate-slide-in">
+              <h2 className="rald-step-title">Almost there</h2>
+              <p className="rald-step-subtitle">Email verified ✓ — complete your profile</p>
+              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Full name" className="rald-input" style={{ marginBottom: 14 }} autoFocus />
+              <RoleSelector role={role} onChange={setRole} businessName={businessName} onBizName={setBusinessName} />
+              <Err msg={err} />
+              <button type="button" className="rald-btn-primary" onClick={handleCreateFromEmail} disabled={busy}>
+                {busy ? "Creating account…" : "Create account →"}
+              </button>
+            </div>
+          )}
+
+          {/* ── Password login ── */}
           {step === "password" && (
             <div className="animate-slide-in">
               <h2 className="rald-step-title">Sign in</h2>
               <p className="rald-step-subtitle">Enter your email and password</p>
-
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email address" className="rald-input" style={{ marginBottom: 10 }} autoFocus />
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handlePasswordLogin()}
-                placeholder="Password" className="rald-input" style={{ marginBottom: 6 }} />
-
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email address" className="rald-input" style={{ marginBottom: 10 }} autoFocus />
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handlePasswordLogin()} placeholder="Password" className="rald-input" style={{ marginBottom: 6 }} />
               <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
                 <LinkBtn onClick={() => { setStep("forgot"); setErr(""); setInfo(""); }}>Forgot password?</LinkBtn>
               </div>
-
-              <ErrorMsg msg={err} />
-
+              <Err msg={err} />
               <button type="button" className="rald-btn-primary" onClick={handlePasswordLogin} disabled={busy} style={{ marginBottom: 14 }}>
                 {busy ? "Signing in…" : "Sign in"}
               </button>
-
-              <LinkBtn onClick={() => { setStep("phone"); setErr(""); setEmail(""); setPassword(""); }}>
-                Use phone number instead
+              <LinkBtn onClick={() => { setStep(method === "sms" ? "phone" : "email-in"); setErr(""); setEmail(""); setPassword(""); }}>
+                ← {method === "sms" ? "Use phone instead" : "Use email OTP instead"}
               </LinkBtn>
             </div>
           )}
 
-          {/* ── Forgot password step ── */}
+          {/* ── Forgot password ── */}
           {step === "forgot" && (
             <div className="animate-slide-in">
               <h2 className="rald-step-title">Reset password</h2>
-              <p className="rald-step-subtitle">
-                {info ? "Enter the 6-digit code sent to your email and a new password." : "Enter your email to receive a reset code."}
-              </p>
-
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email address" className="rald-input" style={{ marginBottom: 10 }} autoFocus={!info} />
-
+              <p className="rald-step-subtitle">{info && !info.includes("updated") ? "Enter the code sent to your email and a new password." : "Enter your email to receive a reset code."}</p>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email address" className="rald-input" style={{ marginBottom: 10 }} autoFocus={!info} />
               {info && !info.includes("updated") && (
                 <>
-                  <input type="text" inputMode="numeric" value={forgotCode}
-                    onChange={(e) => setForgotCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                    placeholder="6-digit code" className="rald-input" style={{ marginBottom: 10 }} autoFocus />
-                  <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="New password (min 8 chars)" className="rald-input" style={{ marginBottom: 16 }} />
+                  <input type="text" inputMode="numeric" value={forgotCode} onChange={e => setForgotCode(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="6-digit reset code" className="rald-input" style={{ marginBottom: 10 }} autoFocus />
+                  <input type="password" value={newPwd} onChange={e => setNewPwd(e.target.value)} placeholder="New password (min 8 chars)" className="rald-input" style={{ marginBottom: 16 }} />
                 </>
               )}
-
-              {info && (
-                <p style={{ fontSize: "0.8rem", color: "#2ECFA3", marginBottom: 12, padding: "8px 12px", background: "rgba(46,207,163,0.08)", borderRadius: 6, border: "1px solid rgba(46,207,163,0.2)" }}>
-                  {info}
-                </p>
-              )}
-              <ErrorMsg msg={err} />
-
+              <Info msg={info} /><Err msg={err} />
               {!info ? (
-                <button type="button" className="rald-btn-primary" onClick={handleForgotRequest} disabled={busy} style={{ marginBottom: 14 }}>
-                  {busy ? "Sending…" : "Send reset code"}
-                </button>
-              ) : info.includes("updated") ? null : (
-                <button type="button" className="rald-btn-primary" onClick={handleForgotReset} disabled={busy} style={{ marginBottom: 14 }}>
-                  {busy ? "Resetting…" : "Reset password"}
-                </button>
-              )}
-
+                <button type="button" className="rald-btn-primary" onClick={handleForgotRequest} disabled={busy} style={{ marginBottom: 14 }}>{busy ? "Sending…" : "Send reset code"}</button>
+              ) : !info.includes("updated") ? (
+                <button type="button" className="rald-btn-primary" onClick={handleForgotReset} disabled={busy} style={{ marginBottom: 14 }}>{busy ? "Resetting…" : "Reset password"}</button>
+              ) : null}
               <GhostBtn onClick={() => { setStep("password"); setErr(""); setInfo(""); }}>← Back to sign in</GhostBtn>
             </div>
           )}
         </div>
-      </div>
 
-      {/* Footer */}
-      <div style={{ width: "100%", textAlign: "center", padding: "20px 20px 28px", flexShrink: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 6 }}>
-          <span style={{ fontSize: "0.7rem", color: "#2ECFA3" }}>◉</span>
-          <span style={{ fontSize: "0.72rem", color: "hsl(215 20% 45%)", letterSpacing: "0.04em" }}>Secured by RALD</span>
-          <span style={{ color: "hsl(215 20% 30%)", fontSize: "0.7rem" }}>·</span>
-          <span style={{ fontSize: "0.72rem", color: "hsl(215 20% 45%)" }}>Your data is never shared</span>
+        {/* Footer */}
+        <div className="rald-footer">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 6 }}>
+            <span style={{ fontSize: "0.65rem", color: "#2ECFA3" }}>◉</span>
+            <span style={{ fontSize: "0.7rem", color: "hsl(215 20% 42%)" }}>Secured by RALD</span>
+            <span style={{ color: "hsl(215 20% 28%)" }}>·</span>
+            <span style={{ fontSize: "0.7rem", color: "hsl(215 20% 42%)" }}>Your data is never shared</span>
+          </div>
+          <p style={{ fontSize: "0.6rem", color: "hsl(215 20% 30%)" }}>
+            RALD is owned and operated by <span style={{ color: "hsl(215 20% 40%)" }}>LILCKY STUDIO LIMITED</span>
+          </p>
         </div>
-        <p style={{ fontSize: "0.62rem", color: "hsl(215 20% 32%)", letterSpacing: "0.02em" }}>
-          RALD is owned and operated by <span style={{ color: "hsl(215 20% 42%)" }}>LILCKY STUDIO LIMITED</span>
-        </p>
       </div>
+    </div>
+  );
+}
+
+// ── Role selector sub-component ───────────────────────────────────────────────
+function RoleSelector({ role, onChange, businessName, onBizName }: {
+  role: "user" | "merchant"; onChange: (r: "user" | "merchant") => void;
+  businessName: string; onBizName: (s: string) => void;
+}) {
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ display: "flex", gap: 8, marginBottom: role === "merchant" ? 10 : 0 }}>
+        {(["user", "merchant"] as const).map(r => (
+          <button key={r} type="button" onClick={() => onChange(r)} style={{
+            flex: 1, padding: "10px 12px", borderRadius: 8, fontSize: "0.8rem", fontWeight: 600,
+            border: `1px solid ${role === r ? "#2ECFA3" : "hsl(220 30% 14%)"}`,
+            background: role === r ? "rgba(46,207,163,0.1)" : "hsl(220 30% 10%)",
+            color: role === r ? "#2ECFA3" : "hsl(215 20% 50%)", cursor: "pointer", transition: "all 0.15s",
+          }}>{r === "user" ? "🙋 Personal" : "🏪 Business"}</button>
+        ))}
+      </div>
+      {role === "merchant" && (
+        <input type="text" value={businessName} onChange={e => onBizName(e.target.value)}
+          placeholder="Business name (optional)" className="rald-input" />
+      )}
     </div>
   );
 }
