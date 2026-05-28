@@ -220,3 +220,100 @@ input:-webkit-autofill:focus {
   transition: border-color 0.15s, background 0.15s;
 }
 .product-card:hover { border-color: hsl(var(--muted-foreground) / 0.4); }
+
+/* ── Auth layout ─────────────────────────────────────────────────────────── */
+.rald-auth-root {
+  min-height: 100svh;
+  min-height: 100vh;
+  background: hsl(224 50% 5%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  /* safe-area insets for iOS */
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+}
+
+/* Override to prefer svh on modern browsers */
+@supports (min-height: 100svh) {
+  .rald-auth-root { min-height: 100svh; }
+}
+
+/* ── Auth card ───────────────────────────────────────────────────────────── */
+.rald-card {
+  background: hsl(222 45% 8%);
+  border: 1px solid hsl(220 30% 14%);
+  border-radius: 14px;
+  padding: 24px 20px;
+}
+
+/* Desktop: wider card + richer shadow */
+@media (min-width: 640px) {
+  .rald-card {
+    padding: 32px 28px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(46,207,163,0.06);
+  }
+}
+
+/* ── Step typography ─────────────────────────────────────────────────────── */
+.rald-step-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: hsl(210 40% 97%);
+}
+
+.rald-step-subtitle {
+  font-size: 0.875rem;
+  color: hsl(215 20% 52%);
+  margin-bottom: 20px;
+  line-height: 1.55;
+}
+
+/* ── OTP boxes: fluid on small screens ──────────────────────────────────── */
+.otp-input {
+  flex: 1;
+  min-width: 0;
+  max-width: 56px;
+  aspect-ratio: 1;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  background: hsl(var(--input));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  outline: none;
+  border-radius: 0.5rem;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+  caret-color: #2ECFA3;
+  height: 52px;
+}
+.otp-input:focus { border-color: #2ECFA3; box-shadow: 0 0 0 2px rgba(46,207,163,0.15); }
+
+/* ── Primary button: RALD teal ───────────────────────────────────────────── */
+.rald-btn-primary {
+  width: 100%;
+  background: linear-gradient(135deg, #2ECFA3 0%, #1DB489 100%);
+  color: hsl(224 50% 5%);
+  padding: 0.875rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
+  border-radius: 0.5rem;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  letter-spacing: 0.01em;
+  box-shadow: 0 4px 14px rgba(46,207,163,0.25);
+}
+.rald-btn-primary:hover:not(:disabled) { opacity: 0.93; box-shadow: 0 4px 20px rgba(46,207,163,0.35); }
+.rald-btn-primary:active:not(:disabled) { transform: scale(0.99); }
+.rald-btn-primary:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
