@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import type { Bindings, Variables } from "../index";
 import { signJwt, verifyJwt, verifyPassword, hashPassword } from "../lib/auth";
+import { sendWelcomeEmail, sendSecurityAlertEmail } from "../lib/email";
 import { authMiddleware } from "../lib/middleware";
 import {
   sendSmsOtp,
@@ -60,6 +61,10 @@ auth.post("/register", async (c) => {
   const newUser = newUsers[0];
   if (!newUser) return c.json({ error: "Failed to create account. Please try again." }, 500);
   const token = await signJwt({ id: newUser.id, email: newUser.email, role: newUser.role }, c.env.RALD_JWT_SECRET);
+  // Send welcome email asynchronously
+  if (c.env.RESEND_API_KEY) {
+    sendWelcomeEmail(newUser.email, newUser.name ?? name, c.env.RESEND_API_KEY).catch((e: unknown) => console.error("Welcome email error:", e));
+  }
   return c.json({ token, user: { id: newUser.id, email: newUser.email, name: newUser.name, role: newUser.role, createdAt: newUser.created_at } }, 201);
 });
 
