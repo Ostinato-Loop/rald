@@ -52,7 +52,7 @@ app.use("*", async (c, next) => {
 /* ─────────── Health, version, metrics (V1 requirements) ─────────── */
 
 const healthResponse = (c: any) => c.json({
-  status: "ok", service: "rald-api", version: "1.1.0",
+  status: "ok", service: "rald-api", version: "1.2.0",
   environment: c.env.ENVIRONMENT ?? "production",
   owner: "LILCKY STUDIO LIMITED",
   timestamp: new Date().toISOString(),
@@ -82,8 +82,8 @@ app.get("/healthz", healthResponse);
 app.get("/ready", readyResponse);
 app.get("/api/ready", readyResponse);
 app.get("/metrics", metricsResponse);
-app.get("/version", (c) => c.json({ version: "1.1.0", service: "rald-api", environment: c.env.ENVIRONMENT ?? "production" }));
-app.get("/api/version", (c) => c.json({ version: "1.1.0", service: "rald-api", environment: c.env.ENVIRONMENT ?? "production", owner: "LILCKY STUDIO LIMITED" }));
+app.get("/version", (c) => c.json({ version: "1.2.0", service: "rald-api", environment: c.env.ENVIRONMENT ?? "production" }));
+app.get("/api/version", (c) => c.json({ version: "1.2.0", service: "rald-api", environment: c.env.ENVIRONMENT ?? "production", owner: "LILCKY STUDIO LIMITED" }));
 
 /* ─────────── API Routes ─────────── */
 
@@ -100,7 +100,7 @@ app.route("/api/referrals", referralsRoutes);
 /* ─────────── Root ─────────── */
 
 app.get("/", (c) => c.json({
-  service: "RALD API", version: "1.1.0",
+  service: "RALD API", version: "1.2.0",
   environment: c.env.ENVIRONMENT ?? "production",
   owner: "LILCKY STUDIO LIMITED",
   docs: "https://api.rald.cloud/api/health",
