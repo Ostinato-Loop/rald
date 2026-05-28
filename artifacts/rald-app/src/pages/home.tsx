@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 
 type Tab = "signin" | "create";
-type Step = "phone" | "otp" | "create" | "email-otp" | "password";
+type Step = "phone" | "otp" | "create" | "email-otp" | "password" | "forgot";
 
 const COUNTRIES = [
   { flag: "🇳🇬", code: "+234", name: "Nigeria" },
@@ -46,9 +46,7 @@ function OtpBoxes({
   };
 
   const handleKeyDown = (i: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !value[i] && i > 0) {
-      inputRefs.current[i - 1]?.focus();
-    }
+    if (e.key === "Backspace" && !value[i] && i > 0) inputRefs.current[i - 1]?.focus();
     if (e.key === "ArrowLeft" && i > 0) inputRefs.current[i - 1]?.focus();
     if (e.key === "ArrowRight" && i < 5) inputRefs.current[i + 1]?.focus();
   };
@@ -59,14 +57,13 @@ function OtpBoxes({
       const next = [...value];
       pasted.split("").forEach((ch, idx) => { if (idx < 6) next[idx] = ch; });
       onChange(next);
-      const focusIdx = Math.min(pasted.length, 5);
-      inputRefs.current[focusIdx]?.focus();
+      inputRefs.current[Math.min(pasted.length, 5)]?.focus();
     }
     e.preventDefault();
   };
 
   return (
-    <div className="flex gap-2 justify-between" onPaste={handlePaste}>
+    <div style={{ display: "flex", gap: 8, justifyContent: "space-between" }} onPaste={handlePaste}>
       {value.map((v, i) => (
         <input
           key={i}
@@ -80,9 +77,43 @@ function OtpBoxes({
           onKeyDown={(e) => handleKeyDown(i, e)}
           className="otp-input"
           autoComplete={i === 0 ? "one-time-code" : "off"}
+          style={{ flex: 1, minWidth: 0 }}
         />
       ))}
     </div>
+  );
+}
+
+function ErrorMsg({ msg }: { msg: string }) {
+  if (!msg) return null;
+  return (
+    <p style={{
+      fontSize: "0.8rem", color: "#E63946", marginBottom: 12,
+      padding: "8px 12px", background: "rgba(230,57,70,0.08)",
+      borderRadius: 6, border: "1px solid rgba(230,57,70,0.2)",
+    }}>{msg}</p>
+  );
+}
+
+function LinkBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button type="button" onClick={onClick} style={{
+      background: "none", border: "none", color: "#2ECFA3",
+      fontSize: "0.875rem", cursor: "pointer", padding: 0,
+    }}>
+      {children}
+    </button>
+  );
+}
+
+function GhostBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button type="button" onClick={onClick} style={{
+      background: "none", border: "none", color: "hsl(215 20% 52%)",
+      fontSize: "0.8rem", cursor: "pointer", padding: 0,
+    }}>
+      {children}
+    </button>
   );
 }
 
@@ -99,11 +130,13 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"user" | "merchant">("user");
-  const [emailOtp, setEmailOtp] = useState(["", "", "", "", "", ""]);
   const [otpToken, setOtpToken] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [info, setInfo] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [forgotCode, setForgotCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -126,39 +159,26 @@ export default function Home() {
   }, []);
 
   const resetFlow = useCallback(() => {
-    setStep("phone");
-    setOtp(["", "", "", "", "", ""]);
-    setEmailOtp(["", "", "", "", "", ""]);
-    setPinId("");
-    setOtpToken("");
-    setErr("");
-    setPhone("");
-    setName("");
-    setEmail("");
-    setPassword("");
-    setResendCooldown(0);
+    setStep("phone"); setOtp(["", "", "", "", "", ""]);
+    setPinId(""); setOtpToken(""); setErr(""); setInfo("");
+    setPhone(""); setName(""); setEmail(""); setPassword("");
+    setForgotCode(""); setNewPassword(""); setResendCooldown(0);
     if (cooldownRef.current) clearInterval(cooldownRef.current);
   }, []);
 
-  const switchTab = useCallback((t: Tab) => {
-    setTab(t);
-    resetFlow();
-  }, [resetFlow]);
-
+  const switchTab = useCallback((t: Tab) => { setTab(t); resetFlow(); }, [resetFlow]);
   const fullPhone = `${country}${phone.replace(/^0/, "")}`;
 
+  // ── Handlers ────────────────────────────────────────────────────────────────
   const handleSendOtp = async () => {
     if (!phone.trim()) { setErr("Enter your phone number"); return; }
     setBusy(true); setErr("");
     try {
       const res = await api.auth.sendOtp(fullPhone);
-      setPinId(res.pinId);
-      setStep("otp");
-      setOtp(["", "", "", "", "", ""]);
-      startCooldown();
-    } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : "Failed to send code");
-    } finally { setBusy(false); }
+      setPinId(res.pinId); setStep("otp");
+      setOtp(["", "", "", "", "", ""]); startCooldown();
+    } catch (e: unknown) { setErr(e instanceof Error ? e.message : "Failed to send code"); }
+    finally { setBusy(false); }
   };
 
   const handleVerifyOtp = async () => {
@@ -167,15 +187,10 @@ export default function Home() {
     setBusy(true); setErr("");
     try {
       const res = await api.auth.verifyOtp(pinId, code, fullPhone);
-      if ("token" in res) {
-        login(res.token, res.user);
-      } else {
-        setOtpToken(res.otpToken);
-        setStep("create");
-      }
-    } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : "Invalid code");
-    } finally { setBusy(false); }
+      if ("token" in res) { login(res.token, res.user); }
+      else { setOtpToken(res.otpToken); setStep("create"); }
+    } catch (e: unknown) { setErr(e instanceof Error ? e.message : "Invalid code"); }
+    finally { setBusy(false); }
   };
 
   const handleCreate = async () => {
@@ -185,9 +200,8 @@ export default function Home() {
     try {
       const res = await api.auth.registerFromOtp({ otpToken, name, email, role });
       login(res.token, res.user);
-    } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : "Registration failed");
-    } finally { setBusy(false); }
+    } catch (e: unknown) { setErr(e instanceof Error ? e.message : "Registration failed"); }
+    finally { setBusy(false); }
   };
 
   const handlePasswordLogin = async () => {
@@ -197,11 +211,33 @@ export default function Home() {
     try {
       const res = await api.auth.login(email, password);
       login(res.token, res.user);
-    } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : "Invalid credentials");
-    } finally { setBusy(false); }
+    } catch (e: unknown) { setErr(e instanceof Error ? e.message : "Invalid email or password"); }
+    finally { setBusy(false); }
   };
 
+  const handleForgotRequest = async () => {
+    if (!email.trim()) { setErr("Enter your email"); return; }
+    setBusy(true); setErr(""); setInfo("");
+    try {
+      await api.auth.requestPasswordReset(email);
+      setInfo("If this email has an account, a 6-digit reset code was sent.");
+    } catch { setInfo("If this email has an account, a 6-digit reset code was sent."); }
+    finally { setBusy(false); }
+  };
+
+  const handleForgotReset = async () => {
+    if (!forgotCode.trim() || forgotCode.length < 6) { setErr("Enter the 6-digit code"); return; }
+    if (!newPassword || newPassword.length < 8) { setErr("Password must be at least 8 characters"); return; }
+    setBusy(true); setErr("");
+    try {
+      await api.auth.resetPassword(email, forgotCode, newPassword);
+      setInfo("Password updated. You can now sign in.");
+      setStep("password"); setForgotCode(""); setNewPassword("");
+    } catch (e: unknown) { setErr(e instanceof Error ? e.message : "Reset failed. Try again."); }
+    finally { setBusy(false); }
+  };
+
+  // ── Loading ──────────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div style={{ minHeight: "100svh", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -213,108 +249,57 @@ export default function Home() {
   const selectedCountry = COUNTRIES.find((c) => c.code === country) ?? COUNTRIES[0];
 
   return (
-    <div
-      style={{
-        minHeight: "100svh",
-        minHeight: "100vh",
-        background: "hsl(224 50% 5%)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0)",
-      }}
-    >
-      {/* Top spacer / theme toggle placeholder */}
-      <div style={{ width: "100%", display: "flex", justifyContent: "flex-end", padding: "12px 16px" }}>
+    <div className="rald-auth-root">
+      {/* Top bar */}
+      <div style={{ width: "100%", display: "flex", justifyContent: "flex-end", padding: "12px 16px", flexShrink: 0 }}>
         <div style={{ width: 36, height: 36 }} />
       </div>
 
-      {/* Center Content */}
+      {/* Center panel */}
       <div
         className="animate-fade-up"
-        style={{ width: "100%", maxWidth: 400, padding: "0 20px", flex: "0 0 auto" }}
+        style={{ width: "100%", maxWidth: 420, padding: "0 20px", flex: "0 0 auto" }}
       >
-        {/* Logo */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 20 }}>
+        {/* Logo + tagline */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 24 }}>
           <RaldLogo dark className="h-10 w-auto" />
-          <p
-            style={{
-              marginTop: 10,
-              fontSize: "0.65rem",
-              fontWeight: 600,
-              letterSpacing: "0.22em",
-              color: "hsl(215 20% 52%)",
-              textTransform: "uppercase",
-              textAlign: "center",
-            }}
-          >
+          <p style={{
+            marginTop: 10, fontSize: "0.65rem", fontWeight: 600,
+            letterSpacing: "0.22em", color: "hsl(215 20% 45%)",
+            textTransform: "uppercase", textAlign: "center",
+          }}>
             Root Authentication &amp; Login Directory
           </p>
         </div>
 
-        {/* Tab switcher */}
+        {/* Tabs */}
         <div className="tab-switcher" style={{ marginBottom: 16 }}>
-          <button
-            type="button"
-            className={`tab-pill ${tab === "signin" ? "active" : ""}`}
-            onClick={() => switchTab("signin")}
-          >
-            Sign in
-          </button>
-          <button
-            type="button"
-            className={`tab-pill ${tab === "create" ? "active" : ""}`}
-            onClick={() => switchTab("create")}
-          >
-            Create account
-          </button>
+          {(["signin", "create"] as const).map((t) => (
+            <button key={t} type="button" className={`tab-pill${tab === t ? " active" : ""}`} onClick={() => switchTab(t)}>
+              {t === "signin" ? "Sign in" : "Create account"}
+            </button>
+          ))}
         </div>
 
-        {/* Auth Card */}
-        <div
-          style={{
-            background: "hsl(222 45% 8%)",
-            border: "1px solid hsl(220 30% 14%)",
-            borderRadius: 14,
-            padding: "24px 20px",
-          }}
-        >
+        {/* Card */}
+        <div className="rald-card">
+
           {/* ── Phone step ── */}
-          {(step === "phone") && (
+          {step === "phone" && (
             <div className="animate-slide-in">
-              <h2 style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: 6 }}>
-                {tab === "signin" ? "Welcome back" : "Create your account"}
-              </h2>
-              <p style={{ fontSize: "0.875rem", color: "hsl(215 20% 52%)", marginBottom: 20, lineHeight: 1.5 }}>
-                {tab === "signin"
-                  ? "Enter your phone number to receive a verification code"
-                  : "We'll send a code to verify your number"}
+              <h2 className="rald-step-title">{tab === "signin" ? "Welcome back" : "Create your account"}</h2>
+              <p className="rald-step-subtitle">
+                {tab === "signin" ? "Enter your phone to receive a verification code" : "We'll send a code to verify your number"}
               </p>
 
               <div style={{ display: "flex", marginBottom: 16 }}>
                 <select
                   value={country}
                   onChange={(e) => setCountry(e.target.value)}
-                  style={{
-                    background: "hsl(220 30% 10%)",
-                    border: "1px solid hsl(220 30% 14%)",
-                    borderRight: "none",
-                    color: "hsl(210 40% 97%)",
-                    borderRadius: "8px 0 0 8px",
-                    padding: "0 10px",
-                    minHeight: 48,
-                    fontSize: "0.875rem",
-                    fontWeight: 600,
-                    outline: "none",
-                    flexShrink: 0,
-                    cursor: "pointer",
-                  }}
+                  className="country-select"
                 >
                   {COUNTRIES.map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.flag} {c.code}
-                    </option>
+                    <option key={c.code} value={c.code}>{c.flag} {c.code}</option>
                   ))}
                 </select>
                 <input
@@ -325,41 +310,25 @@ export default function Home() {
                   onKeyDown={(e) => e.key === "Enter" && handleSendOtp()}
                   placeholder="801 234 5678"
                   style={{
-                    flex: 1,
-                    background: "hsl(220 30% 10%)",
+                    flex: 1, background: "hsl(220 30% 10%)",
                     border: "1px solid hsl(220 30% 14%)",
                     borderRadius: "0 8px 8px 0",
-                    padding: "0 14px",
-                    minHeight: 48,
-                    fontSize: "1rem",
-                    color: "hsl(210 40% 97%)",
-                    outline: "none",
+                    padding: "0 14px", minHeight: 48, fontSize: "1rem",
+                    color: "hsl(210 40% 97%)", outline: "none",
                   }}
                 />
               </div>
 
-              {err && (
-                <p style={{ fontSize: "0.8rem", color: "#E63946", marginBottom: 12, padding: "8px 12px", background: "rgba(230,57,70,0.08)", borderRadius: 6, border: "1px solid rgba(230,57,70,0.2)" }}>{err}</p>
-              )}
+              <ErrorMsg msg={err} />
 
-              <button
-                type="button"
-                className="rald-btn-primary"
-                onClick={handleSendOtp}
-                disabled={busy}
-                style={{ marginBottom: 14 }}
-              >
-                {busy ? "Sending…" : <><span>Send code</span> <span>→</span></>}
+              <button type="button" className="rald-btn-primary" onClick={handleSendOtp} disabled={busy} style={{ marginBottom: 14 }}>
+                {busy ? "Sending…" : <><span>Send code</span><span>→</span></>}
               </button>
 
               {tab === "signin" && (
-                <button
-                  type="button"
-                  onClick={() => { setStep("password"); setErr(""); }}
-                  style={{ background: "none", border: "none", color: "#2ECFA3", fontSize: "0.875rem", cursor: "pointer", padding: 0 }}
-                >
-                  Use password instead
-                </button>
+                <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+                  <LinkBtn onClick={() => { setStep("password"); setErr(""); }}>Use password instead</LinkBtn>
+                </div>
               )}
             </div>
           )}
@@ -367,8 +336,8 @@ export default function Home() {
           {/* ── OTP step ── */}
           {step === "otp" && (
             <div className="animate-slide-in">
-              <h2 style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: 6 }}>Enter your code</h2>
-              <p style={{ fontSize: "0.875rem", color: "hsl(215 20% 52%)", marginBottom: 20, lineHeight: 1.5 }}>
+              <h2 className="rald-step-title">Enter your code</h2>
+              <p className="rald-step-subtitle">
                 Sent to <strong style={{ color: "hsl(210 40% 97%)" }}>{selectedCountry.flag} {country} {phone}</strong>
               </p>
 
@@ -376,35 +345,24 @@ export default function Home() {
                 <OtpBoxes value={otp} onChange={setOtp} autoFocusFirst />
               </div>
 
-              {err && (
-                <p style={{ fontSize: "0.8rem", color: "#E63946", marginBottom: 12, padding: "8px 12px", background: "rgba(230,57,70,0.08)", borderRadius: 6, border: "1px solid rgba(230,57,70,0.2)" }}>{err}</p>
-              )}
+              <ErrorMsg msg={err} />
 
-              <button
-                type="button"
-                className="rald-btn-primary"
-                onClick={handleVerifyOtp}
-                disabled={busy || otp.join("").length < 6}
-                style={{ marginBottom: 14 }}
-              >
+              <button type="button" className="rald-btn-primary" onClick={handleVerifyOtp}
+                disabled={busy || otp.join("").length < 6} style={{ marginBottom: 14 }}>
                 {busy ? "Verifying…" : "Verify & continue"}
               </button>
 
-              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                <button
-                  type="button"
-                  onClick={() => { setStep("phone"); setErr(""); setOtp(["","","","","",""]); }}
-                  style={{ background: "none", border: "none", color: "hsl(215 20% 52%)", fontSize: "0.8rem", cursor: "pointer", padding: 0 }}
-                >
-                  ← Change number
-                </button>
+              <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+                <GhostBtn onClick={() => { setStep("phone"); setErr(""); setOtp(["","","","","",""]); }}>← Change number</GhostBtn>
                 <span style={{ color: "hsl(215 20% 35%)", fontSize: "0.75rem" }}>·</span>
-                <button
-                  type="button"
+                <button type="button"
                   onClick={resendCooldown > 0 ? undefined : handleSendOtp}
                   disabled={resendCooldown > 0}
-                  style={{ background: "none", border: "none", color: resendCooldown > 0 ? "hsl(215 20% 40%)" : "#2ECFA3", fontSize: "0.8rem", cursor: resendCooldown > 0 ? "not-allowed" : "pointer", padding: 0 }}
-                >
+                  style={{
+                    background: "none", border: "none",
+                    color: resendCooldown > 0 ? "hsl(215 20% 40%)" : "#2ECFA3",
+                    fontSize: "0.8rem", cursor: resendCooldown > 0 ? "not-allowed" : "pointer", padding: 0,
+                  }}>
                   {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
                 </button>
               </div>
@@ -414,60 +372,30 @@ export default function Home() {
           {/* ── Create account step ── */}
           {step === "create" && (
             <div className="animate-slide-in">
-              <h2 style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: 6 }}>Almost there</h2>
-              <p style={{ fontSize: "0.875rem", color: "hsl(215 20% 52%)", marginBottom: 20, lineHeight: 1.5 }}>
-                Phone verified ✓ — fill in your details to finish
-              </p>
+              <h2 className="rald-step-title">Almost there</h2>
+              <p className="rald-step-subtitle">Phone verified ✓ — fill in your details to finish</p>
 
-              <div style={{ marginBottom: 12 }}>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Full name"
-                  className="rald-input"
-                  style={{ marginBottom: 10 }}
-                  autoFocus
-                />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email address"
-                  className="rald-input"
-                  style={{ marginBottom: 14 }}
-                />
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)}
+                placeholder="Full name" className="rald-input" style={{ marginBottom: 10 }} autoFocus />
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email address" className="rald-input" style={{ marginBottom: 14 }} />
 
-                <div style={{ display: "flex", gap: 8, marginBottom: 6 }}>
-                  {(["user", "merchant"] as const).map((r) => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => setRole(r)}
-                      style={{
-                        flex: 1, padding: "10px 12px", borderRadius: 8, fontSize: "0.8rem", fontWeight: 600,
-                        border: `1px solid ${role === r ? "#2ECFA3" : "hsl(220 30% 14%)"}`,
-                        background: role === r ? "rgba(46,207,163,0.1)" : "hsl(220 30% 10%)",
-                        color: role === r ? "#2ECFA3" : "hsl(215 20% 52%)",
-                        cursor: "pointer", transition: "all 0.15s",
-                      }}
-                    >
-                      {r === "user" ? "🙋 Personal" : "🏪 Business"}
-                    </button>
-                  ))}
-                </div>
+              <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                {(["user", "merchant"] as const).map((r) => (
+                  <button key={r} type="button" onClick={() => setRole(r)} style={{
+                    flex: 1, padding: "10px 12px", borderRadius: 8, fontSize: "0.8rem", fontWeight: 600,
+                    border: `1px solid ${role === r ? "#2ECFA3" : "hsl(220 30% 14%)"}`,
+                    background: role === r ? "rgba(46,207,163,0.1)" : "hsl(220 30% 10%)",
+                    color: role === r ? "#2ECFA3" : "hsl(215 20% 52%)",
+                    cursor: "pointer", transition: "all 0.15s",
+                  }}>
+                    {r === "user" ? "🙋 Personal" : "🏪 Business"}
+                  </button>
+                ))}
               </div>
 
-              {err && (
-                <p style={{ fontSize: "0.8rem", color: "#E63946", marginBottom: 12, padding: "8px 12px", background: "rgba(230,57,70,0.08)", borderRadius: 6, border: "1px solid rgba(230,57,70,0.2)" }}>{err}</p>
-              )}
-
-              <button
-                type="button"
-                className="rald-btn-primary"
-                onClick={handleCreate}
-                disabled={busy}
-              >
+              <ErrorMsg msg={err} />
+              <button type="button" className="rald-btn-primary" onClick={handleCreate} disabled={busy}>
                 {busy ? "Creating account…" : "Create account →"}
               </button>
             </div>
@@ -476,66 +404,82 @@ export default function Home() {
           {/* ── Password login step ── */}
           {step === "password" && (
             <div className="animate-slide-in">
-              <h2 style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: 6 }}>Sign in</h2>
-              <p style={{ fontSize: "0.875rem", color: "hsl(215 20% 52%)", marginBottom: 20, lineHeight: 1.5 }}>
-                Enter your email and password
-              </p>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email address"
-                className="rald-input"
-                style={{ marginBottom: 10 }}
-                autoFocus
-              />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+              <h2 className="rald-step-title">Sign in</h2>
+              <p className="rald-step-subtitle">Enter your email and password</p>
+
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email address" className="rald-input" style={{ marginBottom: 10 }} autoFocus />
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handlePasswordLogin()}
-                placeholder="Password"
-                className="rald-input"
-                style={{ marginBottom: 16 }}
-              />
+                placeholder="Password" className="rald-input" style={{ marginBottom: 6 }} />
 
-              {err && (
-                <p style={{ fontSize: "0.8rem", color: "#E63946", marginBottom: 12, padding: "8px 12px", background: "rgba(230,57,70,0.08)", borderRadius: 6, border: "1px solid rgba(230,57,70,0.2)" }}>{err}</p>
-              )}
+              <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
+                <LinkBtn onClick={() => { setStep("forgot"); setErr(""); setInfo(""); }}>Forgot password?</LinkBtn>
+              </div>
 
-              <button
-                type="button"
-                className="rald-btn-primary"
-                onClick={handlePasswordLogin}
-                disabled={busy}
-                style={{ marginBottom: 14 }}
-              >
+              <ErrorMsg msg={err} />
+
+              <button type="button" className="rald-btn-primary" onClick={handlePasswordLogin} disabled={busy} style={{ marginBottom: 14 }}>
                 {busy ? "Signing in…" : "Sign in"}
               </button>
 
-              <button
-                type="button"
-                onClick={() => { setStep("phone"); setErr(""); setEmail(""); setPassword(""); }}
-                style={{ background: "none", border: "none", color: "#2ECFA3", fontSize: "0.875rem", cursor: "pointer", padding: 0 }}
-              >
+              <LinkBtn onClick={() => { setStep("phone"); setErr(""); setEmail(""); setPassword(""); }}>
                 Use phone number instead
-              </button>
+              </LinkBtn>
+            </div>
+          )}
+
+          {/* ── Forgot password step ── */}
+          {step === "forgot" && (
+            <div className="animate-slide-in">
+              <h2 className="rald-step-title">Reset password</h2>
+              <p className="rald-step-subtitle">
+                {info ? "Enter the 6-digit code sent to your email and a new password." : "Enter your email to receive a reset code."}
+              </p>
+
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email address" className="rald-input" style={{ marginBottom: 10 }} autoFocus={!info} />
+
+              {info && !info.includes("updated") && (
+                <>
+                  <input type="text" inputMode="numeric" value={forgotCode}
+                    onChange={(e) => setForgotCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="6-digit code" className="rald-input" style={{ marginBottom: 10 }} autoFocus />
+                  <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="New password (min 8 chars)" className="rald-input" style={{ marginBottom: 16 }} />
+                </>
+              )}
+
+              {info && (
+                <p style={{ fontSize: "0.8rem", color: "#2ECFA3", marginBottom: 12, padding: "8px 12px", background: "rgba(46,207,163,0.08)", borderRadius: 6, border: "1px solid rgba(46,207,163,0.2)" }}>
+                  {info}
+                </p>
+              )}
+              <ErrorMsg msg={err} />
+
+              {!info ? (
+                <button type="button" className="rald-btn-primary" onClick={handleForgotRequest} disabled={busy} style={{ marginBottom: 14 }}>
+                  {busy ? "Sending…" : "Send reset code"}
+                </button>
+              ) : info.includes("updated") ? null : (
+                <button type="button" className="rald-btn-primary" onClick={handleForgotReset} disabled={busy} style={{ marginBottom: 14 }}>
+                  {busy ? "Resetting…" : "Reset password"}
+                </button>
+              )}
+
+              <GhostBtn onClick={() => { setStep("password"); setErr(""); setInfo(""); }}>← Back to sign in</GhostBtn>
             </div>
           )}
         </div>
       </div>
 
       {/* Footer */}
-      <div style={{ width: "100%", textAlign: "center", padding: "20px 20px 32px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 8 }}>
+      <div style={{ width: "100%", textAlign: "center", padding: "20px 20px 28px", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 6 }}>
           <span style={{ fontSize: "0.7rem", color: "#2ECFA3" }}>◉</span>
-          <span style={{ fontSize: "0.72rem", color: "hsl(215 20% 45%)", letterSpacing: "0.04em" }}>
-            Secured by RALD
-          </span>
+          <span style={{ fontSize: "0.72rem", color: "hsl(215 20% 45%)", letterSpacing: "0.04em" }}>Secured by RALD</span>
           <span style={{ color: "hsl(215 20% 30%)", fontSize: "0.7rem" }}>·</span>
-          <span style={{ fontSize: "0.72rem", color: "hsl(215 20% 45%)" }}>
-            Your data is never shared
-          </span>
+          <span style={{ fontSize: "0.72rem", color: "hsl(215 20% 45%)" }}>Your data is never shared</span>
         </div>
         <p style={{ fontSize: "0.62rem", color: "hsl(215 20% 32%)", letterSpacing: "0.02em" }}>
           RALD is owned and operated by <span style={{ color: "hsl(215 20% 42%)" }}>LILCKY STUDIO LIMITED</span>
