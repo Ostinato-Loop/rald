@@ -42,6 +42,12 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: artifacts/api-worker
           command: deploy src/index.ts --name rald-api
+          secrets: |
+            TERMII_API_KEY
+            RESEND_API_KEY
+        env:
+          TERMII_API_KEY: ${{ secrets.TERMII_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
 
   deploy-rald-app:
     name: Deploy RALD App (app.rald.cloud)
@@ -134,3 +140,4 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Commit: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "Triggered by: **${{ github.actor }}**" >> $GITHUB_STEP_SUMMARY
+          echo "Owner: **LILCKY STUDIO LIMITED**" >> $GITHUB_STEP_SUMMARY
