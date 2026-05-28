@@ -1,5 +1,5 @@
 // RALD Ecosystem — Comprehensive Email Service
-// Powered by Resend. Enterprise-branded for all RALD products.
+// Enterprise-branded transactional email for all RALD products.
 // Owner: LILCKY STUDIO LIMITED
 
 const RESEND_API = "https://api.resend.com/emails";
