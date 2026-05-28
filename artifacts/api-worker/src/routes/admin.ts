@@ -169,8 +169,8 @@ admin.post("/create-admin", async (c) => {
   if (!body?.email || !body?.name || !body?.password) {
     return c.json({ error: "email, name, and password required" }, 400);
   }
-  if (body.password.length < 16) {
-    return c.json({ error: "Admin password must be at least 16 characters" }, 400);
+  if (body.password.length < 8) {
+    return c.json({ error: "Admin password must be at least 8 characters" }, 400);
   }
 
   const db = c.get("db");
