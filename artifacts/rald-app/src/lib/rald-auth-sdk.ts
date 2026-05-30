@@ -14,6 +14,7 @@ export type RaldUserRole = "user" | "merchant" | "admin" | "operator" | "viewer"
 
 export interface RaldUser {
   id: string;
+  raldId?: string | null;   // permanent RALD-XXXXXXXX identity
   email: string;
   name: string | null;
   role: RaldUserRole;

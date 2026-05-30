@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
-import { LogOut, User, CreditCard, Package, BarChart3, Phone, GitBranch, ChevronRight } from "lucide-react";
+import { LogOut, User, CreditCard, Package, BarChart3, Phone, GitBranch, ChevronRight, Copy, CheckCircle } from "lucide-react";
+import { useState } from "react";
 import { RaldLogo } from "@/components/logo";
 import { useAuth } from "@/lib/auth-context";
 
@@ -12,6 +13,29 @@ const PRODUCTS = [
   { name: "Loop Voice", desc: "Communications", color: "#EC4899", icon: Phone, href: "https://voice.rald.cloud", badge: "BETA" },
   { name: "GitRald", desc: "Infrastructure & CI/CD", color: "#EF4444", icon: GitBranch, href: "https://git.rald.cloud", badge: "SOON" },
 ];
+
+function CopyableId({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(value).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+  return (
+    <button
+      onClick={handleCopy}
+      className="flex items-center gap-1.5 font-mono font-semibold text-[#2ECFA3] hover:text-[#2ECFA3]/80 transition-colors group"
+      title="Copy RALD ID"
+    >
+      {value}
+      {copied
+        ? <CheckCircle size={12} className="text-[#2ECFA3]" />
+        : <Copy size={12} className="opacity-0 group-hover:opacity-60 transition-opacity" />
+      }
+    </button>
+  );
+}
 
 export default function UserDashboard() {
   const { user, logout, loading } = useAuth();
@@ -34,6 +58,7 @@ export default function UserDashboard() {
   const firstName = user.name?.split(" ")[0] ?? "there";
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const raldId = (user as any).raldId ?? null;
 
   return (
     <div className="min-h-dvh flex flex-col dark bg-background text-foreground">
@@ -41,6 +66,12 @@ export default function UserDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <RaldLogo dark className="h-7 w-auto" />
           <div className="flex items-center gap-3">
+            {raldId && (
+              <div className="hidden md:flex items-center gap-1.5 bg-[#2ECFA3]/10 border border-[#2ECFA3]/20 rounded-full px-3 py-1">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#2ECFA3]/60">ID</span>
+                <span className="text-xs font-mono font-semibold text-[#2ECFA3]">{raldId}</span>
+              </div>
+            )}
             <div className="hidden sm:flex items-center gap-2 bg-secondary rounded-full px-3 py-1.5">
               <div className="w-5 h-5 rounded-full bg-[#2ECFA3]/20 flex items-center justify-center">
                 <User size={10} className="text-[#2ECFA3]" />
@@ -108,19 +139,25 @@ export default function UserDashboard() {
 
         <div className="mt-10 bg-card border border-border rounded-lg p-6 animate-fade-up" style={{ animationDelay: "0.3s" }}>
           <h3 className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-4">Account</h3>
-          <div className="grid sm:grid-cols-3 gap-4 text-sm">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
             <div>
               <div className="text-xs text-muted-foreground mb-1">Name</div>
               <div className="font-semibold">{user.name ?? "—"}</div>
             </div>
             <div>
               <div className="text-xs text-muted-foreground mb-1">Email</div>
-              <div className="font-semibold">{user.email}</div>
+              <div className="font-semibold truncate">{user.email}</div>
             </div>
             <div>
               <div className="text-xs text-muted-foreground mb-1">Account Type</div>
-              <div className="font-semibold capitalize">Personal</div>
+              <div className="font-semibold capitalize">{user.role === "merchant" ? "Business" : "Personal"}</div>
             </div>
+            {raldId && (
+              <div>
+                <div className="text-xs text-muted-foreground mb-1">RALD ID</div>
+                <CopyableId value={raldId} />
+              </div>
+            )}
           </div>
         </div>
       </main>

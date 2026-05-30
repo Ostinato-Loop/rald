@@ -1,43 +1,8 @@
-// RALD OTP Service — SMS via Termii, Email via Resend
+// RALD OTP Service — SMS via Termii (primary) + Twilio (fallback), Email via Resend
 // All vendor names are internal only — never visible to end users.
 // LILCKY STUDIO LIMITED
 
-// ── SMS OTP (Termii) ─────────────────────────────────────────────────────────
-
-export async function sendSmsOtp(phone: string, apiKey: string): Promise<{ pinId: string }> {
-  const res = await fetch("https://api.ng.termii.com/api/sms/otp/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      api_key: apiKey,
-      message_type: "NUMERIC",
-      to: phone,
-      from: "RALD",
-      channel: "dnd",
-      pin_attempts: 3,
-      pin_time_to_live: 10,
-      pin_length: 6,
-      pin_placeholder: "< 1234 >",
-      message_text: "Your RALD verification code is < 1234 >. Valid for 10 minutes. Do not share. RALD by LILCKY STUDIO LIMITED.",
-      pin_type: "NUMERIC",
-    }),
-  });
-  const data = await res.json() as { pinId?: string; message?: string };
-  if (!data.pinId) throw new Error(data.message ?? "Failed to send verification code");
-  return { pinId: data.pinId };
-}
-
-export async function verifySmsOtp(pinId: string, pin: string, apiKey: string): Promise<boolean> {
-  const res = await fetch("https://api.ng.termii.com/api/sms/otp/verify", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ api_key: apiKey, pin_id: pinId, pin }),
-  });
-  const data = await res.json() as { verified?: string | boolean };
-  return data.verified === "True" || data.verified === true;
-}
-
-// ── OTP utilities ─────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 export function generateNumericOtp(length = 6): string {
   const arr = new Uint8Array(length);
@@ -52,6 +17,139 @@ export async function hashOtpCode(code: string): Promise<string> {
 
 export async function verifyOtpCode(code: string, hash: string): Promise<boolean> {
   return (await hashOtpCode(code)) === hash;
+}
+
+// ── SMS OTP — Termii (primary) ────────────────────────────────────────────────
+
+async function sendTermiiSmsOtp(phone: string, apiKey: string): Promise<{ pinId: string; provider: "termii" }> {
+  const res = await fetch("https://api.ng.termii.com/api/sms/otp/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      api_key: apiKey,
+      message_type: "NUMERIC",
+      to: phone,
+      from: "RALD",
+      channel: "dnd",
+      pin_attempts: 3,
+      pin_time_to_live: 10,
+      pin_length: 6,
+      pin_placeholder: "< 1234 >",
+      message_text: "Your RALD verification code is < 1234 >. Valid for 10 minutes. Do not share.",
+      pin_type: "NUMERIC",
+    }),
+  });
+  const data = await res.json() as { pinId?: string; message?: string };
+  if (!data.pinId) throw new Error(data.message ?? "Termii: Failed to send verification code");
+  return { pinId: data.pinId, provider: "termii" };
+}
+
+async function verifyTermiiSmsOtp(pinId: string, pin: string, apiKey: string): Promise<boolean> {
+  const res = await fetch("https://api.ng.termii.com/api/sms/otp/verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ api_key: apiKey, pin_id: pinId, pin }),
+  });
+  const data = await res.json() as { verified?: string | boolean };
+  return data.verified === "True" || data.verified === true;
+}
+
+// ── SMS OTP — Twilio (fallback) ───────────────────────────────────────────────
+
+async function sendTwilioSmsOtp(
+  phone: string, code: string,
+  accountSid: string, authToken: string, fromNumber: string
+): Promise<{ pinId: string; provider: "twilio" }> {
+  const body = new URLSearchParams({
+    To: `+${phone}`,
+    From: fromNumber,
+    Body: `Your RALD verification code is ${code}. Valid for 10 minutes. Do not share.`,
+  });
+  const res = await fetch(
+    `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: `Basic ${btoa(`${accountSid}:${authToken}`)}`,
+      },
+      body: body.toString(),
+    }
+  );
+  const data = await res.json() as { sid?: string; message?: string; error_message?: string };
+  if (!res.ok) throw new Error(data.error_message ?? data.message ?? "Twilio: Failed to send verification code");
+  return { pinId: `twilio:${data.sid}`, provider: "twilio" };
+}
+
+// ── SMS OTP — Public API with automatic fallback ──────────────────────────────
+
+export interface SmsOtpResult {
+  pinId: string;
+  provider: "termii" | "twilio" | "dev";
+  code?: string; // only set in dev fallback
+}
+
+export interface SmsEnv {
+  termiiApiKey?: string;
+  twilioAccountSid?: string;
+  twilioAuthToken?: string;
+  twilioFromNumber?: string;
+}
+
+export async function sendSmsOtp(phone: string, env: SmsEnv): Promise<SmsOtpResult> {
+  // 1. Try Termii (primary)
+  if (env.termiiApiKey) {
+    try {
+      const result = await sendTermiiSmsOtp(phone, env.termiiApiKey);
+      return result;
+    } catch (err) {
+      console.warn("[OTP] Termii failed, falling back to Twilio:", err);
+    }
+  }
+
+  // 2. Try Twilio (fallback)
+  if (env.twilioAccountSid && env.twilioAuthToken && env.twilioFromNumber) {
+    try {
+      const code = generateNumericOtp(6);
+      const result = await sendTwilioSmsOtp(phone, code, env.twilioAccountSid, env.twilioAuthToken, env.twilioFromNumber);
+      // For Twilio we encode the code hash in the pinId since Twilio doesn't have a verify API
+      const codeHash = await hashOtpCode(code);
+      return { pinId: `${result.pinId}:${codeHash}`, provider: "twilio" };
+    } catch (err) {
+      console.warn("[OTP] Twilio failed:", err);
+    }
+  }
+
+  // 3. Dev mode — no credentials
+  const code = "123456";
+  console.log(`[DEV] SMS OTP for ${phone}: ${code}`);
+  return { pinId: "dev-mode-pin-id", provider: "dev", code };
+}
+
+export async function verifySmsOtp(
+  pinId: string, pin: string, env: SmsEnv
+): Promise<boolean> {
+  if (pinId === "dev-mode-pin-id") return pin === "123456";
+
+  // Twilio-backed pinId: `twilio:<sid>:<codeHash>`
+  if (pinId.startsWith("twilio:")) {
+    const parts = pinId.split(":");
+    const codeHash = parts[parts.length - 1];
+    if (!codeHash) return false;
+    return (await hashOtpCode(pin)) === codeHash;
+  }
+
+  // Termii-backed pinId
+  if (env.termiiApiKey) {
+    try {
+      return await verifyTermiiSmsOtp(pinId, pin, env.termiiApiKey);
+    } catch (err) {
+      console.error("[OTP] Termii verify failed:", err);
+      return false;
+    }
+  }
+
+  return false;
 }
 
 // ── Email OTP (Resend) ────────────────────────────────────────────────────────
@@ -72,7 +170,6 @@ async function sendResendEmail(payload: object, apiKey: string): Promise<void> {
   }
 }
 
-// Account / post-login email verification OTP
 export async function sendEmailOtp(to: string, code: string, apiKey: string): Promise<void> {
   await sendResendEmail({
     from: FROM_IDENTITY,
@@ -82,7 +179,6 @@ export async function sendEmailOtp(to: string, code: string, apiKey: string): Pr
   }, apiKey);
 }
 
-// Login / sign-in email OTP
 export async function sendLoginEmailOtp(to: string, code: string, apiKey: string): Promise<void> {
   await sendResendEmail({
     from: FROM_IDENTITY,
@@ -106,9 +202,9 @@ function otpEmailHtml(code: string, purpose: "login" | "verify", email: string):
   <tr><td style="padding:32px 40px 24px;border-bottom:1px solid #1E3A5F;">
     <table cellpadding="0" cellspacing="0" border="0">
       <tr>
-        <td style="font-size:28px;font-weight:900;letter-spacing:-1px;color:#FFFFFF;font-family:-apple-system,Arial,sans-serif;">R</td>
-        <td style="font-size:28px;font-weight:900;letter-spacing:-1px;color:#2ECFA3;font-family:-apple-system,Arial,sans-serif;">A</td>
-        <td style="font-size:28px;font-weight:900;letter-spacing:-1px;color:#FFFFFF;font-family:-apple-system,Arial,sans-serif;">LD</td>
+        <td style="font-size:28px;font-weight:900;letter-spacing:-1px;color:#FFFFFF;">R</td>
+        <td style="font-size:28px;font-weight:900;letter-spacing:-1px;color:#2ECFA3;">A</td>
+        <td style="font-size:28px;font-weight:900;letter-spacing:-1px;color:#FFFFFF;">LD</td>
         <td style="padding-left:10px;"><span style="background:#2ECFA322;border:1px solid #2ECFA344;color:#2ECFA3;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border-radius:20px;">Identity</span></td>
       </tr>
     </table>

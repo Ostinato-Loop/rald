@@ -6,18 +6,34 @@ compatibility_flags = []
 [vars]
 ENVIRONMENT = "production"
 
-# Secrets — set via: wrangler secret put <NAME>
+# ── Secrets — set via: wrangler secret put <NAME> ────────────────────────────
 # Required:
-#   SUPABASE_URL
-#   SUPABASE_SERVICE_ROLE_KEY
-#   RALD_JWT_SECRET
-#   RALD_ENCRYPTION_KEY
-#   TERMII_API_KEY         — SMS OTP (https://termii.com)
-#   RESEND_API_KEY         — Email OTP / transactional email (https://resend.com)
+#   SUPABASE_URL                — Supabase project URL
+#   SUPABASE_SERVICE_ROLE_KEY   — Supabase service role key (admin access)
+#   RALD_JWT_SECRET             — JWT signing secret (min 32 chars, random)
+#   RALD_ENCRYPTION_KEY         — AES-GCM encryption key for credentials vault
+#   BOOTSTRAP_SECRET            — One-time bootstrap / admin creation secret
+#
+# OTP Providers (at least one required):
+#   TERMII_API_KEY              — Primary SMS OTP (https://termii.com)
+#   TWILIO_ACCOUNT_SID          — Fallback SMS OTP (https://twilio.com)
+#   TWILIO_AUTH_TOKEN           — Fallback SMS OTP
+#   TWILIO_FROM_NUMBER          — Twilio sender number (E.164, e.g. +12025551234)
+#
+# Email:
+#   RESEND_API_KEY              — Transactional email (https://resend.com)
+# ─────────────────────────────────────────────────────────────────────────────
 
 [[routes]]
 pattern = "api.rald.cloud/*"
 zone_name = "rald.cloud"
+
+# ── KV Namespaces ─────────────────────────────────────────────────────────────
+# Rate limiting store — create with: wrangler kv:namespace create RATE_LIMIT_KV
+# Then replace the id below with the actual KV namespace ID.
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
 
 [build]
 command = ""
