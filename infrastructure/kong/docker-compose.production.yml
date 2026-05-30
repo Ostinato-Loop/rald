@@ -1,0 +1,74 @@
+# ============================================================
+# RALD Kong — Production Overrides
+# Usage: docker compose -f docker-compose.yml -f docker-compose.production.yml up -d
+# ============================================================
+
+services:
+  kong:
+    environment:
+      KONG_LOG_LEVEL: warn
+      KONG_PROXY_LISTEN: "0.0.0.0:8000 reuseport backlog=16384, 0.0.0.0:8443 ssl reuseport backlog=16384"
+      KONG_ADMIN_LISTEN: "127.0.0.1:8001, 127.0.0.1:8444 ssl"
+      KONG_NGINX_WORKER_PROCESSES: auto
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 30s
+        order: start-first      # zero-downtime rolling deploy
+        failure_action: rollback
+      resources:
+        limits:
+          cpus: "4"
+          memory: 4G
+        reservations:
+          cpus: "1"
+          memory: 1G
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "10"
+
+  kong-admin:
+    environment:
+      KONG_LOG_LEVEL: warn
+    # Admin API NEVER exposed to internet in production
+    ports: !reset []
+    expose:
+      - "8001"
+
+  redis:
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory 2gb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --appendonly yes
+      --appendfsync everysec
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 2.5G
+    volumes:
+      - redis-data:/data
+
+  prometheus:
+    # Never expose Prometheus port externally in production
+    ports: !reset []
+    expose:
+      - "9090"
+
+  grafana:
+    # Serve Grafana behind Nginx/Cloudflare in production
+    ports: !reset []
+    expose:
+      - "3000"

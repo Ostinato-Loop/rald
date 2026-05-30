@@ -1,0 +1,54 @@
+# ============================================================
+# RALD Kong — Development Overrides
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+# ============================================================
+
+services:
+  kong:
+    environment:
+      KONG_LOG_LEVEL: debug
+      KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yml
+      # Dev: no SSL required
+      KONG_PROXY_LISTEN: "0.0.0.0:8000"
+      KONG_ADMIN_LISTEN:  "0.0.0.0:8001"
+      KONG_SSL_CERT:      ""
+      KONG_SSL_CERT_KEY:  ""
+    ports:
+      - "8000:8000"   # Proxy (HTTP only in dev)
+      - "8001:8001"   # Admin (exposed in dev for convenience)
+    volumes:
+      - ./kong:/kong/declarative   # writable in dev for hot-reload
+      - /dev/null:/certs/rald.cloud.crt
+      - /dev/null:/certs/rald.cloud.key
+
+  kong-admin:
+    environment:
+      KONG_LOG_LEVEL: debug
+      KONG_PROXY_LISTEN: "0.0.0.0:8002"
+      KONG_ADMIN_LISTEN:  "0.0.0.0:8003"
+      KONG_SSL_CERT:      ""
+      KONG_SSL_CERT_KEY:  ""
+    ports:
+      - "8002:8002"
+      - "8003:8003"
+    volumes:
+      - ./kong:/kong/declarative
+      - /dev/null:/certs/rald.cloud.crt
+      - /dev/null:/certs/rald.cloud.key
+
+  redis:
+    # Relaxed password for dev
+    command: redis-server --requirepass devredis --maxmemory 128mb --maxmemory-policy allkeys-lru
+    environment:
+      - REDIS_PASSWORD=devredis
+
+  prometheus:
+    ports:
+      - "9090:9090"  # Expose for dev inspection
+
+  grafana:
+    ports:
+      - "3000:3000"  # Expose for dev inspection
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP:     "true"

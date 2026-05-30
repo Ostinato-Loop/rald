@@ -1,0 +1,379 @@
+# ============================================================
+# RALD API Gateway — Kong Declarative Configuration
+# Mode: DBless (GitOps-native, Kubernetes-ready)
+# Owner: LILCKY STUDIO LIMITED
+#
+# Architecture:
+#   Internet → Cloudflare (CDN/DDoS/WAF)
+#            → Kong Gateway (API management, auth, rate limiting)
+#            → Cloudflare Workers (upstream backend services)
+#
+# Domains handled:
+#   api.rald.cloud         — main API gateway (all services)
+#   auth.rald.cloud        — authentication + identity
+#   identity.rald.cloud    — RALD Identity (same upstream as auth)
+#   credentials.rald.cloud — Developer Portal / API keys
+# ============================================================
+
+_format_version: "3.0"
+_transform: true
+
+# ══════════════════════════════════════════════════════════════
+# SERVICES (upstream backends — all Cloudflare Workers)
+# ══════════════════════════════════════════════════════════════
+
+services:
+
+  # ── RALD Auth & Identity ────────────────────────────────────────────────
+  - name: rald-auth
+    url: https://api.rald.cloud
+    connect_timeout: 10000
+    send_timeout: 60000
+    read_timeout: 60000
+    retries: 3
+    tags: [auth, identity, core]
+    routes:
+      - name: auth-api
+        paths: ["/api/auth"]
+        strip_path: false
+        hosts: [api.rald.cloud, auth.rald.cloud, identity.rald.cloud]
+        methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+        preserve_host: false
+        tags: [auth]
+      - name: credentials-api
+        paths: ["/api/api-keys", "/api/credentials"]
+        strip_path: false
+        hosts: [api.rald.cloud, credentials.rald.cloud]
+        methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+        preserve_host: false
+        tags: [credentials, developer-portal]
+      - name: services-api
+        paths: ["/api/services", "/api/products", "/api/metrics", "/api/deployments"]
+        strip_path: false
+        hosts: [api.rald.cloud, auth.rald.cloud]
+        methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+        preserve_host: false
+        tags: [control-center]
+      - name: admin-api
+        paths: ["/api/admin"]
+        strip_path: false
+        hosts: [api.rald.cloud]
+        methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+        preserve_host: false
+        tags: [admin, internal]
+      - name: waitlist-api
+        paths: ["/api/waitlist", "/api/referrals"]
+        strip_path: false
+        hosts: [api.rald.cloud, auth.rald.cloud]
+        methods: [GET, POST, OPTIONS]
+        preserve_host: false
+        tags: [waitlist]
+      - name: health-api
+        paths: ["/health", "/healthz", "/ready", "/version", "/metrics"]
+        strip_path: false
+        hosts: [api.rald.cloud, auth.rald.cloud, identity.rald.cloud, credentials.rald.cloud]
+        methods: [GET, OPTIONS]
+        preserve_host: false
+        tags: [health, monitoring]
+
+  # ── Loop Social Commerce ────────────────────────────────────────────────
+  - name: loop-api
+    url: https://loop.rald.cloud
+    connect_timeout: 10000
+    send_timeout: 60000
+    read_timeout: 60000
+    retries: 2
+    tags: [loop, social-commerce]
+    routes:
+      - name: loop-api-route
+        paths: ["/api/loop"]
+        strip_path: true
+        hosts: [api.rald.cloud, loop.rald.cloud]
+        methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+        preserve_host: false
+        tags: [loop]
+
+  # ── Loop Messenger ──────────────────────────────────────────────────────
+  - name: messenger-api
+    url: https://messenger.rald.cloud
+    connect_timeout: 10000
+    send_timeout: 120000
+    read_timeout: 120000
+    retries: 2
+    tags: [messenger, communications]
+    routes:
+      - name: messenger-api-route
+        paths: ["/api/messenger"]
+        strip_path: true
+        hosts: [api.rald.cloud, messenger.rald.cloud]
+        methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+        preserve_host: false
+        tags: [messenger]
+
+  # ── PayRALD (Payments) ──────────────────────────────────────────────────
+  - name: payrald-api
+    url: https://payrald.rald.cloud
+    connect_timeout: 10000
+    send_timeout: 30000
+    read_timeout: 30000
+    retries: 1   # fewer retries for payment idempotency
+    tags: [payrald, payments]
+    routes:
+      - name: payrald-api-route
+        paths: ["/api/pay", "/api/payrald"]
+        strip_path: true
+        hosts: [api.rald.cloud, payrald.rald.cloud]
+        methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+        preserve_host: false
+        tags: [payrald]
+
+  # ── Loop Dispatch (Logistics) ───────────────────────────────────────────
+  - name: logistics-api
+    url: https://dispatch.rald.cloud
+    connect_timeout: 10000
+    send_timeout: 60000
+    read_timeout: 60000
+    retries: 2
+    tags: [logistics, dispatch]
+    routes:
+      - name: logistics-api-route
+        paths: ["/api/dispatch", "/api/logistics"]
+        strip_path: true
+        hosts: [api.rald.cloud, dispatch.rald.cloud]
+        methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+        preserve_host: false
+        tags: [logistics]
+
+  # ── GitRALD (Deployment Governance) ────────────────────────────────────
+  - name: gitrald-api
+    url: https://git.rald.cloud
+    connect_timeout: 10000
+    send_timeout: 300000  # long timeout for CI/CD operations
+    read_timeout: 300000
+    retries: 1
+    tags: [gitrald, infrastructure]
+    routes:
+      - name: gitrald-api-route
+        paths: ["/api/git", "/api/gitrald"]
+        strip_path: true
+        hosts: [api.rald.cloud, git.rald.cloud]
+        methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+        preserve_host: false
+        tags: [gitrald]
+
+  # ── RALD AI ─────────────────────────────────────────────────────────────
+  - name: ai-api
+    url: https://ai.rald.cloud
+    connect_timeout: 15000
+    send_timeout: 300000  # AI generation can take time
+    read_timeout: 300000
+    retries: 1
+    tags: [ai, generation]
+    routes:
+      - name: ai-api-route
+        paths: ["/api/ai"]
+        strip_path: true
+        hosts: [api.rald.cloud, ai.rald.cloud]
+        methods: [GET, POST, OPTIONS]
+        preserve_host: false
+        tags: [ai]
+
+  # ── RALD Business ───────────────────────────────────────────────────────
+  - name: business-api
+    url: https://business.rald.cloud
+    connect_timeout: 10000
+    send_timeout: 60000
+    read_timeout: 60000
+    retries: 2
+    tags: [business, loop-business]
+    routes:
+      - name: business-api-route
+        paths: ["/api/business"]
+        strip_path: true
+        hosts: [api.rald.cloud, business.rald.cloud]
+        methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+        preserve_host: false
+        tags: [business]
+
+# ══════════════════════════════════════════════════════════════
+# CONSUMERS (API key and JWT holders)
+# ══════════════════════════════════════════════════════════════
+
+consumers:
+  - username: rald-internal
+    tags: [internal, m2m]
+
+  - username: rald-sdk-client
+    tags: [sdk, external]
+
+# ══════════════════════════════════════════════════════════════
+# PLUGINS — Global (apply to all services/routes)
+# ══════════════════════════════════════════════════════════════
+
+plugins:
+
+  # ── CORS ─────────────────────────────────────────────────────────────────
+  - name: cors
+    config:
+      origins:
+        - https://rald.cloud
+        - https://app.rald.cloud
+        - https://admin.rald.cloud
+        - https://control.rald.cloud
+        - https://credentials.rald.cloud
+        - https://loop.rald.cloud
+        - https://messenger.rald.cloud
+        - https://business.rald.cloud
+        - https://payrald.rald.cloud
+        - https://dispatch.rald.cloud
+        - https://git.rald.cloud
+        - https://ai.rald.cloud
+        - https://rald-app.pages.dev
+        - https://rald-control-center.pages.dev
+        - http://localhost:5173
+        - http://localhost:3000
+        - http://localhost:5174
+      methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      headers:
+        - Authorization
+        - Content-Type
+        - X-Request-ID
+        - X-RALD-SDK
+        - X-RALD-Key
+        - X-Bootstrap-Secret
+        - X-Kong-Request-ID
+      exposed_headers:
+        - X-Kong-Request-ID
+        - X-RateLimit-Limit
+        - X-RateLimit-Remaining
+        - X-RateLimit-Reset
+        - Retry-After
+      credentials: true
+      max_age: 3600
+      preflight_continue: false
+    tags: [global, cors]
+
+  # ── Global Rate Limiting (baseline — generous limits) ────────────────────
+  - name: rate-limiting
+    config:
+      minute: 600         # 600 req/min per IP globally
+      hour: 10000
+      policy: redis
+      redis_host: redis
+      redis_port: 6379
+      redis_password: "${REDIS_PASSWORD}"
+      redis_database: 0
+      redis_ssl: false
+      fault_tolerant: true  # don't block if Redis is down
+      hide_client_headers: false
+      limit_by: ip
+      error_code: 429
+      error_message: "Rate limit exceeded. Slow down."
+    tags: [global, rate-limiting]
+
+  # ── Request Size Limiting ─────────────────────────────────────────────────
+  - name: request-size-limiting
+    config:
+      allowed_payload_size: 10      # 10 MB max body
+      size_unit: megabytes
+      require_content_length: false
+    tags: [global, security]
+
+  # ── Prometheus Metrics ────────────────────────────────────────────────────
+  - name: prometheus
+    config:
+      status_code_metrics:    true
+      latency_metrics:        true
+      upstream_health_metrics: true
+      bandwidth_metrics:      true
+    tags: [global, monitoring]
+
+  # ── Request ID (trace every request) ─────────────────────────────────────
+  - name: correlation-id
+    config:
+      header_name:  X-Kong-Request-ID
+      generator:    uuid
+      echo_downstream: true
+    tags: [global, tracing]
+
+  # ── HTTP Access Log → Logging endpoint ───────────────────────────────────
+  - name: http-log
+    config:
+      http_endpoint: http://127.0.0.1:5044  # Logstash / Vector / Loki
+      method: POST
+      timeout: 10000
+      keepalive: 60000
+      flush_timeout: 2
+      retry_count: 3
+      headers:
+        Content-Type: application/json
+        X-Log-Source: rald-kong
+    enabled: false  # Enable when logging endpoint is configured
+    tags: [global, logging, audit]
+
+  # ── Auth endpoint — tighter rate limiting ──────────────────────────────
+  - name: rate-limiting
+    service: rald-auth
+    route: auth-api
+    config:
+      minute: 30          # 30 auth attempts per minute per IP
+      hour: 300
+      policy: redis
+      redis_host: redis
+      redis_port: 6379
+      redis_password: "${REDIS_PASSWORD}"
+      redis_database: 1   # separate DB for auth limits
+      fault_tolerant: true
+      limit_by: ip
+      error_code: 429
+      error_message: "Too many authentication attempts. Please wait."
+    tags: [auth, rate-limiting, security]
+
+  # ── Payment endpoint — idempotency-safe tight limits ─────────────────────
+  - name: rate-limiting
+    service: payrald-api
+    route: payrald-api-route
+    config:
+      minute: 60
+      hour: 500
+      policy: redis
+      redis_host: redis
+      redis_port: 6379
+      redis_password: "${REDIS_PASSWORD}"
+      redis_database: 2
+      fault_tolerant: true
+      limit_by: consumer
+      error_code: 429
+      error_message: "Payment rate limit exceeded."
+    tags: [payrald, rate-limiting, security]
+
+  # ── Admin route — IP allowlist (restrict to ops team) ────────────────────
+  - name: ip-restriction
+    route: admin-api
+    config:
+      allow:
+        - "127.0.0.1"         # localhost
+        - "10.0.0.0/8"        # private
+        - "172.16.0.0/12"     # private
+        - "192.168.0.0/16"    # private
+        # Add your ops team's IPs here:
+        # - "YOUR_OFFICE_IP/32"
+      status: 403
+      message: "Access denied. Admin routes are restricted."
+    tags: [admin, security, ip-restriction]
+
+  # ── Health routes — bypass auth and rate limiting ─────────────────────────
+  - name: request-termination
+    route: health-api
+    config:
+      status_code: 200
+      body: '{"status":"ok","service":"rald-gateway","version":"1.0.0"}'
+      content_type: "application/json"
+    enabled: false   # Disable to pass health checks to upstream; enable for gateway-level health
+    tags: [health]

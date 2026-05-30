@@ -1,0 +1,152 @@
+# ============================================================
+# RALD Kong API Gateway — Base Compose
+# LILCKY STUDIO LIMITED
+# Usage:
+#   Dev:        docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#   Staging:    docker compose -f docker-compose.yml -f docker-compose.staging.yml up
+#   Production: docker compose -f docker-compose.yml -f docker-compose.production.yml up
+# ============================================================
+
+x-kong-common: &kong-common
+  image: kong/kong-gateway:3.7
+  restart: unless-stopped
+  environment:
+    # DBless declarative config — GitOps ready, no DB required
+    KONG_DATABASE: "off"
+    KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yml
+    # Plugins
+    KONG_PLUGINS: "bundled,jwt,key-auth,cors,rate-limiting,http-log,prometheus,request-size-limiting,ip-restriction,response-ratelimiting,request-termination"
+    # Networking
+    KONG_PROXY_LISTEN:  "0.0.0.0:8000, 0.0.0.0:8443 ssl"
+    KONG_ADMIN_LISTEN:  "0.0.0.0:8001, 0.0.0.0:8444 ssl"
+    # SSL / TLS
+    KONG_SSL_CERT:      /certs/rald.cloud.crt
+    KONG_SSL_CERT_KEY:  /certs/rald.cloud.key
+    # Telemetry
+    KONG_TRACING_INSTRUMENTATIONS: "all"
+    KONG_VITALS: "on"
+    # Trust Cloudflare as proxy
+    KONG_TRUSTED_IPS: "173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20,197.234.240.0/22,198.41.128.0/17,162.158.0.0/15,104.16.0.0/13,104.24.0.0/14,172.64.0.0/13,131.0.72.0/22"
+    KONG_REAL_IP_HEADER: "CF-Connecting-IP"
+    KONG_REAL_IP_RECURSIVE: "on"
+    # Logging
+    KONG_PROXY_ACCESS_LOG: /dev/stdout
+    KONG_PROXY_ERROR_LOG:  /dev/stderr
+    KONG_ADMIN_ACCESS_LOG: /dev/stdout
+    KONG_ADMIN_ERROR_LOG:  /dev/stderr
+  volumes:
+    - ./kong:/kong/declarative:ro
+    - ./certs:/certs:ro
+  depends_on:
+    redis:
+      condition: service_healthy
+  networks:
+    - rald-gateway
+  healthcheck:
+    test: ["CMD", "kong", "health"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    start_period: 40s
+
+services:
+
+  # ── Kong Proxy (handles all API traffic) ──────────────────────────────────
+  kong:
+    <<: *kong-common
+    container_name: rald-kong
+    ports:
+      - "${KONG_HTTP_PORT:-8000}:8000"
+      - "${KONG_HTTPS_PORT:-8443}:8443"
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+
+  # ── Kong Admin API (internal only — never expose to internet) ─────────────
+  kong-admin:
+    <<: *kong-common
+    container_name: rald-kong-admin
+    ports:
+      - "127.0.0.1:${KONG_ADMIN_PORT:-8001}:8001"
+      - "127.0.0.1:${KONG_ADMIN_HTTPS_PORT:-8444}:8444"
+
+  # ── Redis — distributed rate limiting across Kong nodes ───────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: rald-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      --maxmemory ${REDIS_MAX_MEMORY:-512mb}
+      --maxmemory-policy allkeys-lru
+      --save ""
+      --appendonly no
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - rald-gateway
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Prometheus — scrapes Kong metrics ─────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: rald-prometheus
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
+    ports:
+      - "127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - rald-gateway
+
+  # ── Grafana — dashboards ───────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: rald-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
+      GF_SECURITY_ADMIN_USER:     ${GRAFANA_ADMIN_USER:-admin}
+      GF_USERS_ALLOW_SIGN_UP:     "false"
+      GF_SERVER_DOMAIN:           "monitoring.rald.cloud"
+      GF_SERVER_ROOT_URL:         "https://monitoring.rald.cloud"
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - rald-gateway
+    depends_on:
+      - prometheus
+
+volumes:
+  redis-data:
+    name: rald-redis-data
+  prometheus-data:
+    name: rald-prometheus-data
+  grafana-data:
+    name: rald-grafana-data
+
+networks:
+  rald-gateway:
+    name: rald-gateway
+    driver: bridge

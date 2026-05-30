@@ -80,59 +80,89 @@ const GhostBtn = ({ onClick, children }: { onClick: () => void; children: React.
 
 // ── Brand panel (desktop left) ────────────────────────────────────────────────
 function BrandPanel() {
-  const features = [
-    { icon: "📱", label: "SMS OTP", sub: "12 African carriers" },
-    { icon: "📧", label: "Email OTP", sub: "Instant delivery" },
-    { icon: "🔐", label: "JWT Auth", sub: "Edge-native" },
-    { icon: "⚡", label: "Cloudflare", sub: "Global edge" },
-    { icon: "🛡️", label: "Zero-storage", sub: "Stateless OTPs" },
-    { icon: "🌍", label: "Africa-first", sub: "Built for scale" },
+  const pillars = [
+    { color: "#2ECFA3", label: "Identity",  sub: "One permanent RALD ID" },
+    { color: "#E63946", label: "Security",  sub: "Edge-native JWT auth" },
+    { color: "#F4A261", label: "Scale",     sub: "Cloudflare global edge" },
   ];
   return (
     <div className="rald-brand-panel">
-      {/* Logo */}
-      <div style={{ marginBottom: 32 }}>
-        <RaldLogo dark className="h-10 w-auto" />
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#2ECFA3", display: "inline-block", boxShadow: "0 0 6px #2ECFA3" }} />
-          <span style={{ fontSize: "0.7rem", color: "#2ECFA3", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>Live · Production</span>
-        </div>
-      </div>
 
-      {/* Headline */}
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: "1.75rem", fontWeight: 900, lineHeight: 1.2, color: "#F0F4F8", margin: "0 0 12px", letterSpacing: "-0.02em" }}>
-          Sovereign Identity<br />
-          <span style={{ color: "#2ECFA3" }}>for Africa's</span><br />
-          Digital Economy
+      {/* ── Hero logo block ── */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+
+        {/* Wordmark — prominent like Google's homepage logo */}
+        <div style={{ marginBottom: 8 }}>
+          <RaldLogo
+            dark
+            style={{ width: "100%", maxWidth: 320 }}
+          />
+        </div>
+
+        {/* Tagline — clean, small-caps, like Google's "Search" label */}
+        <p style={{
+          fontSize: "0.72rem",
+          fontWeight: 700,
+          letterSpacing: "0.22em",
+          color: "hsl(215 20% 38%)",
+          textTransform: "uppercase",
+          margin: "0 0 40px 2px",
+        }}>
+          Sovereign Identity Platform
+        </p>
+
+        {/* Headline */}
+        <h1 style={{
+          fontSize: "clamp(1.4rem, 2.4vw, 2rem)",
+          fontWeight: 900,
+          lineHeight: 1.2,
+          color: "#F0F4F8",
+          margin: "0 0 14px",
+          letterSpacing: "-0.03em",
+        }}>
+          One identity.<br />
+          <span style={{ color: "#2ECFA3" }}>Every RALD product.</span>
         </h1>
-        <p style={{ fontSize: "0.875rem", color: "hsl(215 20% 50%)", lineHeight: 1.6, margin: 0 }}>
-          RALD is the authentication layer for the entire LILCKY STUDIO ecosystem — phone-first, email-optional, always encrypted.
+        <p style={{
+          fontSize: "0.9rem",
+          color: "hsl(215 20% 46%)",
+          lineHeight: 1.65,
+          margin: "0 0 40px",
+          maxWidth: 340,
+        }}>
+          Phone-first authentication built for Africa's digital economy — 12 carriers, 6 countries, one permanent RALD ID.
         </p>
-      </div>
 
-      {/* Feature grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 32 }}>
-        {features.map(f => (
-          <div key={f.label} style={{ background: "hsl(222 45% 7%)", border: "1px solid hsl(220 30% 13%)", borderRadius: 10, padding: "12px 14px", display: "flex", alignItems: "flex-start", gap: 10 }}>
-            <span style={{ fontSize: "1.1rem", lineHeight: 1 }}>{f.icon}</span>
-            <div>
-              <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#F0F4F8" }}>{f.label}</div>
-              <div style={{ fontSize: "0.7rem", color: "hsl(215 20% 45%)", marginTop: 2 }}>{f.sub}</div>
+        {/* Three pillars */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 40 }}>
+          {pillars.map(p => (
+            <div key={p.label} style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <span style={{
+                width: 3,
+                height: 36,
+                borderRadius: 99,
+                background: p.color,
+                flexShrink: 0,
+                boxShadow: `0 0 8px ${p.color}55`,
+              }} />
+              <div>
+                <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "#F0F4F8", lineHeight: 1 }}>{p.label}</div>
+                <div style={{ fontSize: "0.72rem", color: "hsl(215 20% 44%)", marginTop: 3 }}>{p.sub}</div>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      {/* Owner badge */}
-      <div style={{ borderTop: "1px solid hsl(220 30% 13%)", paddingTop: 20 }}>
-        <p style={{ fontSize: "0.7rem", color: "hsl(215 20% 38%)", margin: "0 0 8px", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 600 }}>Built by</p>
-        <div style={{ background: "hsl(222 45% 7%)", border: "1px solid hsl(220 30% 13%)", borderRadius: 8, padding: "10px 14px", display: "inline-block" }}>
-          <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#F0F4F8", letterSpacing: "0.02em" }}>LILCKY STUDIO LIMITED</span>
-        </div>
-        <p style={{ fontSize: "0.7rem", color: "hsl(215 20% 35%)", margin: "12px 0 0", lineHeight: 1.5 }}>
-          "Building sovereign digital infrastructure for Africa — starting with identity."
-        </p>
+      {/* ── Footer ── */}
+      <div style={{ borderTop: "1px solid hsl(220 30% 11%)", paddingTop: 18, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "hsl(215 20% 32%)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+          LILCKY STUDIO LIMITED
+        </span>
+        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#2ECFA3", display: "inline-block", boxShadow: "0 0 5px #2ECFA3" }} />
+          <span style={{ fontSize: "0.65rem", color: "#2ECFA3", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" }}>Live</span>
+        </span>
       </div>
     </div>
   );
@@ -301,7 +331,7 @@ export default function Home() {
   // ── Loading ──────────────────────────────────────────────────────────────
   if (loading) return (
     <div style={{ minHeight: "100svh", display: "flex", alignItems: "center", justifyContent: "center", background: "hsl(224 50% 5%)" }}>
-      <RaldLogo dark className="h-10 w-auto" style={{ animation: "pulse 2s infinite" }} />
+      <RaldLogo dark style={{ width: 160, opacity: 0.9, animation: "pulse 2s infinite" }} />
     </div>
   );
 
@@ -315,9 +345,9 @@ export default function Home() {
       <div className="rald-auth-panel">
         {/* Mobile logo */}
         <div className="rald-mobile-logo">
-          <RaldLogo dark className="h-9 w-auto" />
-          <p style={{ marginTop: 8, fontSize: "0.62rem", fontWeight: 600, letterSpacing: "0.2em", color: "hsl(215 20% 42%)", textTransform: "uppercase", textAlign: "center" }}>
-            Root Authentication &amp; Login Directory
+          <RaldLogo dark style={{ width: 140, margin: "0 auto" }} />
+          <p style={{ marginTop: 6, fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.22em", color: "hsl(215 20% 38%)", textTransform: "uppercase", textAlign: "center" }}>
+            Sovereign Identity Platform
           </p>
         </div>
 
