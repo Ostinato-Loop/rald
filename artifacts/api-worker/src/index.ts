@@ -47,12 +47,14 @@ const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 app.use("*", cors({
   origin: [
     "https://rald.cloud",
-    "https://profiles.rald.cloud",      // Identity Portal (primary auth domain)
+    "https://profile.rald.cloud",        // Identity Portal (canonical)
+    "https://profiles.rald.cloud",      // Identity Portal (alias)
     "https://app.rald.cloud",           // Legacy — kept during DNS cutover
     "https://admin.rald.cloud",
     "https://control.rald.cloud",
     "https://credentials.rald.cloud",   // Developer Portal
     "https://loop.rald.cloud",
+    "https://pay.rald.cloud",
     "https://payrald.rald.cloud",
     "https://raldtics.rald.cloud",
     "https://dunarald.rald.cloud",
@@ -62,6 +64,8 @@ app.use("*", cors({
     "https://business.rald.cloud",
     "https://rald-app.pages.dev",
     "https://rald-control-center.pages.dev",
+    "https://sdk.rald.cloud",
+    "https://identity.rald.cloud",
     "http://localhost:5173",
     "http://localhost:3000",
     "http://localhost:5174",
