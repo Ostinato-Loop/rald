@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RALD SDK — Build anything. Ship everywhere | RALD.cloud</title>
+    <meta name="description" content="The developer toolkit for the RALD ecosystem. TypeScript-first SDKs for payments, logistics, identity, voice, and analytics.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --rald-ink:#0F172A; --rald-ink-light:#1E293B; --rald-slate:#334155; --rald-slate-mid:#64748B;
+            --rald-slate-soft:#94A3B8; --rald-slate-faint:#CBD5E1; --rald-cloud:#F1F5F9; --rald-cloud-soft:#F8FAFC;
+            --rald-white:#FFFFFF; --rald-blue:#3B82F6; --rald-blue-dark:#2563EB; --rald-blue-soft:#DBEAFE;
+            --rald-blue-faint:#EFF6FF; --rald-green:#10B981; --rald-green-soft:#D1FAE5; --rald-amber:#F59E0B;
+            --rald-red:#EF4444; --rald-purple:#8B5CF6; --rald-teal:#14B8A6; --rald-orange:#F97316;
+            --radius-sm:8px; --radius-md:12px; --radius-lg:16px; --radius-xl:24px;
+            --shadow-sm:0 1px 2px rgba(15,23,42,0.04); --shadow-md:0 4px 12px rgba(15,23,42,0.06);
+            --shadow-lg:0 12px 40px rgba(15,23,42,0.08); --shadow-xl:0 24px 64px rgba(15,23,42,0.12);
+        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--rald-white);color:var(--rald-ink);line-height:1.6}
+
+        @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes type{from{width:0}to{width:100%}}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+        @keyframes gradient{0%{background-position:0%50%}50%{background-position:100%50%}100%{background-position:0%50%}}
+
+        /* ── NAV ── */
+        .nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--rald-cloud);transition:all 0.3s}
+        .nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between}
+        .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+        .nav-logo-mark{width:32px;height:32px;background:var(--rald-ink);border-radius:8px;display:flex;align-items:center;justify-content:center}
+        .nav-logo-mark svg{width:16px;height:16px;color:white}
+        .nav-logo-text{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--rald-ink);letter-spacing:-0.02em}
+        .nav-links{display:flex;align-items:center;gap:32px}
+        .nav-link{font-size:14px;font-weight:500;color:var(--rald-slate-mid);text-decoration:none;transition:color 0.2s}
+        .nav-link:hover{color:var(--rald-ink)}
+        .nav-cta{padding:8px 18px;background:var(--rald-ink);color:white;font-size:13px;font-weight:600;border-radius:var(--radius-md);text-decoration:none;transition:all 0.2s}
+        .nav-cta:hover{background:var(--rald-ink-light);transform:translateY(-1px)}
+        .nav-cta-secondary{padding:8px 18px;background:transparent;color:var(--rald-slate-mid);font-size:13px;font-weight:600;border:1.5px solid var(--rald-cloud);border-radius:var(--radius-md);text-decoration:none;transition:all 0.2s}
+        .nav-cta-secondary:hover{border-color:var(--rald-slate-faint);color:var(--rald-ink)}
+
+        /* ── HERO ── */
+        .hero{padding:140px 24px 80px;max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+        .hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:var(--rald-purple);background:linear-gradient(135deg,rgba(139,92,246,0.1),rgba(59,130,246,0.1));border:1px solid rgba(139,92,246,0.2);border-radius:var(--radius-full);font-size:12px;font-weight:600;color:var(--rald-purple);margin-bottom:24px;animation:fadeUp 0.6s ease}
+        .hero-badge-dot{width:6px;height:6px;background:var(--rald-purple);border-radius:50%;animation:pulse 2s infinite}
+        .hero h1{font-family:'Space Grotesk',sans-serif;font-size:52px;font-weight:800;line-height:1.1;letter-spacing:-0.03em;color:var(--rald-ink);margin-bottom:20px;animation:fadeUp 0.6s ease 0.1s both}
+        .hero h1 span{background:linear-gradient(135deg,var(--rald-purple),var(--rald-blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .hero p{font-size:18px;color:var(--rald-slate-mid);line-height:1.7;max-width:480px;margin-bottom:32px;animation:fadeUp 0.6s ease 0.2s both}
+        .hero-cta-group{display:flex;gap:12px;animation:fadeUp 0.6s ease 0.3s both}
+        .hero-cta-primary{padding:14px 28px;background:var(--rald-ink);color:white;font-size:15px;font-weight:700;border-radius:var(--radius-md);text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all 0.2s;box-shadow:var(--shadow-lg)}
+        .hero-cta-primary:hover{background:var(--rald-ink-light);transform:translateY(-2px);box-shadow:var(--shadow-xl)}
+        .hero-cta-secondary{padding:14px 28px;background:var(--rald-white);color:var(--rald-ink);font-size:15px;font-weight:700;border:1.5px solid var(--rald-cloud);border-radius:var(--radius-md);text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all 0.2s}
+        .hero-cta-secondary:hover{border-color:var(--rald-slate-faint);background:var(--rald-cloud-soft)}
+        .hero-trust{display:flex;align-items:center;gap:20px;margin-top:40px;animation:fadeUp 0.6s ease 0.4s both}
+        .hero-trust-item{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--rald-slate-soft)}
+        .hero-trust-item svg{width:14px;height:14px;color:var(--rald-green)}
+
+        /* ── CODE BLOCK ── */
+        .code-block{background:var(--rald-ink);border-radius:var(--radius-xl);padding:28px;box-shadow:var(--shadow-xl);position:relative;overflow:hidden;animation:fadeUp 0.8s ease 0.3s both}
+        .code-block::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--rald-purple),var(--rald-blue),var(--rald-teal));opacity:0.5}
+        .code-header{display:flex;align-items:center;gap:8px;margin-bottom:20px}
+        .code-dot{width:10px;height:10px;border-radius:50%}
+        .code-dot.red{background:var(--rald-red)}
+        .code-dot.amber{background:var(--rald-amber)}
+        .code-dot.green{background:var(--rald-green)}
+        .code-title{font-size:12px;font-weight:600;color:var(--rald-slate-soft);margin-left:8px}
+        .code-content{font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.8;color:var(--rald-slate-soft)}
+        .code-content .keyword{color:var(--rald-purple);font-weight:600}
+        .code-content .function{color:var(--rald-blue);font-weight:600}
+        .code-content .string{color:var(--rald-green)}
+        .code-content .comment{color:var(--rald-slate);font-style:italic}
+        .code-content .type{color:var(--rald-teal);font-weight:600}
+        .code-prompt{display:flex;align-items:center;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06)}
+        .code-prompt-prefix{color:var(--rald-green);font-weight:600}
+        .code-cursor{display:inline-block;width:8px;height:16px;background:var(--rald-blue);animation:blink 1s infinite;margin-left:2px;vertical-align:middle}
+
+        /* ── STATS ── */
+        .stats{background:linear-gradient(135deg,var(--rald-ink),var(--rald-ink-light));padding:60px 24px;position:relative;overflow:hidden}
+        .stats::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--rald-purple),var(--rald-blue),transparent);opacity:0.3}
+        .stats-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:40px;position:relative;z-index:1}
+        .stat-item{text-align:center;animation:fadeUp 0.6s ease both}
+        .stat-item:nth-child(1){animation-delay:0.1s}
+        .stat-item:nth-child(2){animation-delay:0.2s}
+        .stat-item:nth-child(3){animation-delay:0.3s}
+        .stat-item:nth-child(4){animation-delay:0.4s}
+        .stat-value{font-family:'Space Grotesk',sans-serif;font-size:40px;font-weight:800;color:white;letter-spacing:-0.02em}
+        .stat-value span{color:var(--rald-purple)}
+        .stat-label{font-size:13px;font-weight:500;color:var(--rald-slate-soft);margin-top:4px}
+
+        /* ── FEATURES ── */
+        .features{padding:100px 24px;max-width:1200px;margin:0 auto}
+        .section-header{text-align:center;margin-bottom:64px}
+        .section-header h2{font-family:'Space Grotesk',sans-serif;font-size:40px;font-weight:800;letter-spacing:-0.02em;color:var(--rald-ink);margin-bottom:12px}
+        .section-header p{font-size:17px;color:var(--rald-slate-mid);max-width:500px;margin:0 auto}
+        .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+        .feature-card{padding:32px;background:var(--rald-white);border:1px solid var(--rald-cloud);border-radius:var(--radius-xl);transition:all 0.3s;position:relative;overflow:hidden}
+        .feature-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--rald-purple),var(--rald-blue));opacity:0;transition:opacity 0.3s}
+        .feature-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-xl);border-color:var(--rald-blue-soft)}
+        .feature-card:hover::before{opacity:1}
+        .feature-icon{width:48px;height:48px;background:linear-gradient(135deg,var(--rald-purple),var(--rald-blue));border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:20px;color:white}
+        .feature-card h3{font-size:17px;font-weight:700;color:var(--rald-ink);margin-bottom:8px}
+        .feature-card p{font-size:14px;color:var(--rald-slate-mid);line-height:1.6}
+        .feature-code{margin-top:16px;padding:12px 16px;background:var(--rald-ink);border-radius:var(--radius-md);font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--rald-slate-soft);overflow-x:auto}
+        .feature-code .highlight{color:var(--rald-blue);font-weight:600}
+
+        /* ── INSTALL SECTION ── */
+        .install{padding:80px 24px;background:var(--rald-cloud-soft);border-top:1px solid var(--rald-cloud);border-bottom:1px solid var(--rald-cloud)}
+        .install-inner{max-width:800px;margin:0 auto;text-align:center}
+        .install h2{font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:800;letter-spacing:-0.02em;color:var(--rald-ink);margin-bottom:16px}
+        .install>p{font-size:17px;color:var(--rald-slate-mid);margin-bottom:40px}
+        .install-tabs{display:flex;justify-content:center;gap:4px;margin-bottom:24px}
+        .install-tab{padding:8px 20px;background:var(--rald-white);border:1.5px solid var(--rald-cloud);border-radius:var(--radius-md);font-size:13px;font-weight:600;color:var(--rald-slate-mid);cursor:pointer;transition:all 0.2s;font-family:inherit}
+        .install-tab.active{background:var(--rald-ink);color:white;border-color:var(--rald-ink)}
+        .install-tab:hover:not(.active){border-color:var(--rald-slate-faint);color:var(--rald-ink)}
+        .install-code{text-align:left;background:var(--rald-ink);border-radius:var(--radius-xl);padding:24px;box-shadow:var(--shadow-xl);font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--rald-slate-soft);line-height:1.8;position:relative}
+        .install-code .comment{color:var(--rald-slate)}
+        .install-code .keyword{color:var(--rald-purple);font-weight:600}
+        .install-code .string{color:var(--rald-green)}
+        .install-code .function{color:var(--rald-blue);font-weight:600}
+        .copy-btn{position:absolute;top:16px;right:16px;padding:6px 12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius-sm);color:var(--rald-slate-soft);font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:inherit}
+        .copy-btn:hover{background:rgba(255,255,255,0.15);color:white}
+
+        /* ── CTA ── */
+        .cta-section{padding:100px 24px;background:linear-gradient(180deg,var(--rald-cloud-soft),var(--rald-white))}
+        .cta-inner{max-width:700px;margin:0 auto;text-align:center}
+        .cta-inner h2{font-family:'Space Grotesk',sans-serif;font-size:40px;font-weight:800;letter-spacing:-0.02em;color:var(--rald-ink);margin-bottom:16px}
+        .cta-inner p{font-size:17px;color:var(--rald-slate-mid);margin-bottom:32px}
+        .cta-form{display:flex;gap:12px;max-width:480px;margin:0 auto 16px}
+        .cta-input{flex:1;padding:14px 18px;background:var(--rald-white);border:1.5px solid var(--rald-cloud);border-radius:var(--radius-md);font-size:15px;font-family:inherit;color:var(--rald-ink);outline:none;transition:all 0.2s}
+        .cta-input:focus{border-color:var(--rald-blue);box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+        .cta-input::placeholder{color:var(--rald-slate-soft)}
+        .cta-btn{padding:14px 24px;background:var(--rald-ink);color:white;font-size:15px;font-weight:700;border:none;border-radius:var(--radius-md);cursor:pointer;transition:all 0.2s;white-space:nowrap}
+        .cta-btn:hover{background:var(--rald-ink-light);transform:translateY(-1px)}
+        .cta-note{font-size:12px;color:var(--rald-slate-soft);font-weight:500}
+
+        /* ── FOOTER ── */
+        .footer{padding:60px 24px 40px;border-top:1px solid var(--rald-cloud);max-width:1200px;margin:0 auto}
+        .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:48px}
+        .footer-brand{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+        .footer-brand-mark{width:28px;height:28px;background:var(--rald-ink);border-radius:6px;display:flex;align-items:center;justify-content:center}
+        .footer-brand-mark svg{width:14px;height:14px;color:white}
+        .footer-brand-text{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:var(--rald-ink)}
+        .footer-desc{font-size:14px;color:var(--rald-slate-mid);line-height:1.6;max-width:280px}
+        .footer-col h4{font-size:13px;font-weight:700;color:var(--rald-ink);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px}
+        .footer-col a{display:block;font-size:14px;color:var(--rald-slate-mid);text-decoration:none;margin-bottom:10px;transition:color 0.2s}
+        .footer-col a:hover{color:var(--rald-purple)}
+        .footer-bottom{display:flex;align-items:center;justify-content:space-between;padding-top:24px;border-top:1px solid var(--rald-cloud)}
+        .footer-bottom p{font-size:13px;color:var(--rald-slate-soft)}
+        .footer-bottom-links{display:flex;gap:24px}
+        .footer-bottom-links a{font-size:13px;color:var(--rald-slate-soft);text-decoration:none;transition:color 0.2s}
+        .footer-bottom-links a:hover{color:var(--rald-ink)}
+
+        /* ── RESPONSIVE ── */
+        @media(max-width:900px){
+            .hero{grid-template-columns:1fr;padding:120px 24px 60px}
+            .hero h1{font-size:40px}
+            .hero-visual{order:-1}
+            .stats-inner{grid-template-columns:repeat(2,1fr)}
+            .features-grid{grid-template-columns:1fr}
+            .footer-grid{grid-template-columns:1fr 1fr}
+            .nav-links{display:none}
+        }
+        @media(max-width:600px){
+            .hero h1{font-size:32px}
+            .stats-inner{grid-template-columns:1fr 1fr;gap:24px}
+            .stat-value{font-size:28px}
+            .cta-form{flex-direction:column}
+            .footer-grid{grid-template-columns:1fr}
+            .footer-bottom{flex-direction:column;gap:12px;text-align:center}
+            .install-tabs{flex-wrap:wrap}
+        }
+    </style>
+</head>
+<body>
+    <!-- NAV -->
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="/" class="nav-logo">
+                <div class="nav-logo-mark">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                </div>
+                <span class="nav-logo-text">RALD</span>
+            </a>
+            <div class="nav-links">
+                <a href="/identity" class="nav-link">Identity</a>
+                <a href="/sdk" class="nav-link">SDK</a>
+                <a href="/docs" class="nav-link">Docs</a>
+                <a href="/pricing" class="nav-link">Pricing</a>
+                <a href="https://profiles.rald.cloud/sign-in" class="nav-cta-secondary">Sign In</a>
+                <a href="https://profiles.rald.cloud/sign-up" class="nav-cta">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div>
+            <div class="hero-badge">
+                <span class="hero-badge-dot"></span>
+                Now accepting early access
+            </div>
+            <h1>RALD <span>SDK</span></h1>
+            <p>Build anything. Ship everywhere. The developer toolkit for the RALD ecosystem. TypeScript-first SDKs for payments, logistics, identity, voice, and analytics — with one unified client, one auth token, one import.</p>
+            <div class="hero-cta-group">
+                <a href="https://profiles.rald.cloud/sign-up" class="hero-cta-primary">
+                    Get API keys
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </a>
+                <a href="/docs" class="hero-cta-secondary">
+                    View docs
+                </a>
+            </div>
+            <div class="hero-trust">
+                <span class="hero-trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Free early access</span>
+                <span class="hero-trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>No credit card</span>
+                <span class="hero-trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Invite your team</span>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-dot red"></span>
+                    <span class="code-dot amber"></span>
+                    <span class="code-dot green"></span>
+                    <span class="code-title">index.ts</span>
+                </div>
+                <div class="code-content">
+                    <span class="keyword">import</span> { rald } <span class="keyword">from</span> <span class="string">'@rald/sdk'</span><br><br>
+                    <span class="comment">// One client. Every service.</span><br>
+                    <span class="keyword">const</span> client = <span class="keyword">new</span> <span class="function">rald</span>({<br>
+                    &nbsp;&nbsp;apiKey: <span class="string">'rald_live_...'</span>,<br>
+                    &nbsp;&nbsp;environment: <span class="string">'production'</span><br>
+                    })<br><br>
+                    <span class="comment">// Verify a BVN in 2 seconds</span><br>
+                    <span class="keyword">const</span> identity = <span class="keyword">await</span> client.<span class="function">identity</span>.<span class="function">verifyBVN</span>({<br>
+                    &nbsp;&nbsp;bvn: <span class="string">'12345678901'</span>,<br>
+                    &nbsp;&nbsp;phone: <span class="string">'+2348012345678'</span><br>
+                    })<br><br>
+                    <span class="comment">// Create a payment instantly</span><br>
+                    <span class="keyword">const</span> payment = <span class="keyword">await</span> client.<span class="function">payments</span>.<span class="function">create</span>({<br>
+                    &nbsp;&nbsp;amount: <span class="string">50000</span>,<br>
+                    &nbsp;&nbsp;currency: <span class="string">'NGN'</span>,<br>
+                    &nbsp;&nbsp;recipient: <span class="string">'user@example.com'</span><br>
+                    })
+                </div>
+                <div class="code-prompt">
+                    <span class="code-prompt-prefix">$</span>
+                    <span>npm install @rald/sdk</span>
+                    <span class="code-cursor"></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STATS -->
+    <section class="stats">
+        <div class="stats-inner">
+            <div class="stat-item">
+                <div class="stat-value">8</div>
+                <div class="stat-label">SDK packages</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">100<span>%</span></div>
+                <div class="stat-label">TypeScript</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">v1.4.2</div>
+                <div class="stat-label">Latest stable</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">MIT</div>
+                <div class="stat-label">License</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="features">
+        <div class="section-header">
+            <h2>Built different.</h2>
+            <p>Everything you need. Nothing you don't.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📦</div>
+                <h3>Unified Client</h3>
+                <p>import { rald } from '@rald/sdk'. Access every RALD service with one client, one token, zero config.</p>
+                <div class="feature-code"><span class="highlight">import</span> { rald } <span class="highlight">from</span> <span style="color:var(--rald-green)">'@rald/sdk'</span></div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔷</div>
+                <h3>TypeScript-First</h3>
+                <p>Full type safety across all SDKs. IntelliSense for every method. Auto-generated from OpenAPI specs.</p>
+                <div class="feature-code"><span class="highlight">const</span> payment: Payment = <span class="highlight">await</span> client.payments.create()</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚛️</div>
+                <h3>React Hooks</h3>
+                <p>usePayment(), useShipment(), useIdentity() — TanStack Query under the hood, already wired up.</p>
+                <div class="feature-code"><span class="highlight">const</span> { data } = <span class="highlight">usePayment</span>(paymentId)</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>React Native</h3>
+                <p>Same SDK, mobile-optimised. Biometric KYC, push OTPs, and offline-capable payment flows.</p>
+                <div class="feature-code"><span class="highlight">import</span> { rald } <span class="highlight">from</span> <span style="color:var(--rald-green)">'@rald/sdk/react-native'</span></div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔄</div>
+                <h3>Auto-Codegen</h3>
+                <p>SDK updates when the API changes. No manual sync. Orval-powered, always in sync with production.</p>
+                <div class="feature-code">npx <span class="highlight">@rald/sdk</span> generate --watch</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📖</div>
+                <h3>Interactive Docs</h3>
+                <p>Docs that run in the browser. Every example is live. Test against real RALD staging instantly.</p>
+                <div class="feature-code"><span style="color:var(--rald-slate)">// Try it live at</span> docs.rald.cloud</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- INSTALL -->
+    <section class="install">
+        <div class="install-inner">
+            <h2>npm install @rald/sdk</h2>
+            <p>One command. Every service. Zero configuration.</p>
+            <div class="install-tabs">
+                <button class="install-tab active" onclick="showInstall('npm')">npm</button>
+                <button class="install-tab" onclick="showInstall('yarn')">yarn</button>
+                <button class="install-tab" onclick="showInstall('pnpm')">pnpm</button>
+                <button class="install-tab" onclick="showInstall('bun')">bun</button>
+            </div>
+            <div class="install-code" id="installCode">
+                <button class="copy-btn" onclick="copyCode()">Copy</button>
+                <div id="npmCode">
+<span class="comment"># Install the core SDK</span>
+<span class="keyword">npm</span> install <span class="string">@rald/sdk</span>
+
+<span class="comment"># Or install specific packages</span>
+<span class="keyword">npm</span> install <span class="string">@rald/sdk-identity</span>
+<span class="keyword">npm</span> install <span class="string">@rald/sdk-payments</span>
+<span class="keyword">npm</span> install <span class="string">@rald/sdk-logistics</span>
+
+<span class="comment"># React hooks (optional)</span>
+<span class="keyword">npm</span> install <span class="string">@rald/sdk-react</span>
+                </div>
+                <div id="yarnCode" style="display:none">
+<span class="comment"># Install the core SDK</span>
+<span class="keyword">yarn</span> add <span class="string">@rald/sdk</span>
+
+<span class="comment"># Or install specific packages</span>
+<span class="keyword">yarn</span> add <span class="string">@rald/sdk-identity</span>
+<span class="keyword">yarn</span> add <span class="string">@rald/sdk-payments</span>
+<span class="keyword">yarn</span> add <span class="string">@rald/sdk-logistics</span>
+
+<span class="comment"># React hooks (optional)</span>
+<span class="keyword">yarn</span> add <span class="string">@rald/sdk-react</span>
+                </div>
+                <div id="pnpmCode" style="display:none">
+<span class="comment"># Install the core SDK</span>
+<span class="keyword">pnpm</span> add <span class="string">@rald/sdk</span>
+
+<span class="comment"># Or install specific packages</span>
+<span class="keyword">pnpm</span> add <span class="string">@rald/sdk-identity</span>
+<span class="keyword">pnpm</span> add <span class="string">@rald/sdk-payments</span>
+<span class="keyword">pnpm</span> add <span class="string">@rald/sdk-logistics</span>
+
+<span class="comment"># React hooks (optional)</span>
+<span class="keyword">pnpm</span> add <span class="string">@rald/sdk-react</span>
+                </div>
+                <div id="bunCode" style="display:none">
+<span class="comment"># Install the core SDK</span>
+<span class="keyword">bun</span> add <span class="string">@rald/sdk</span>
+
+<span class="comment"># Or install specific packages</span>
+<span class="keyword">bun</span> add <span class="string">@rald/sdk-identity</span>
+<span class="keyword">bun</span> add <span class="string">@rald/sdk-payments</span>
+<span class="keyword">bun</span> add <span class="string">@rald/sdk-logistics</span>
+
+<span class="comment"># React hooks (optional)</span>
+<span class="keyword">bun</span> add <span class="string">@rald/sdk-react</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="cta-inner">
+            <h2>Join the developer community</h2>
+            <p>Get your API keys and start building in minutes.</p>
+            <form class="cta-form" onsubmit="event.preventDefault(); alert('Thanks for joining!');">
+                <input type="email" class="cta-input" placeholder="you@company.com" required>
+                <button type="submit" class="cta-btn">Get started</button>
+            </form>
+            <p class="cta-note">Limited spots available · No spam, ever</p>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div>
+                <div class="footer-brand">
+                    <div class="footer-brand-mark">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    </div>
+                    <span class="footer-brand-text">RALD</span>
+                </div>
+                <p class="footer-desc">The infrastructure layer for African commerce. Identity, payments, logistics, voice — one platform, infinite possibilities.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Products</h4>
+                <a href="/identity">Identity</a>
+                <a href="/payments">Payments</a>
+                <a href="/logistics">Logistics</a>
+                <a href="/voice">Voice</a>
+                <a href="/sdk">SDK</a>
+            </div>
+            <div class="footer-col">
+                <h4>Developers</h4>
+                <a href="/docs">Documentation</a>
+                <a href="/api-reference">API Reference</a>
+                <a href="/status">Status</a>
+                <a href="/changelog">Changelog</a>
+            </div>
+            <div class="footer-col">
+                <h4>Company</h4>
+                <a href="/about">About</a>
+                <a href="/careers">Careers</a>
+                <a href="/blog">Blog</a>
+                <a href="/contact">Contact</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 RALD Technologies. All rights reserved.</p>
+            <div class="footer-bottom-links">
+                <a href="/privacy">Privacy</a>
+                <a href="/terms">Terms</a>
+                <a href="/security">Security</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function showInstall(pkg) {
+            document.querySelectorAll('.install-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            ['npm','yarn','pnpm','bun'].forEach(p => {
+                document.getElementById(p + 'Code').style.display = p === pkg ? 'block' : 'none';
+            });
+        }
+        function copyCode() {
+            const active = document.querySelector('.install-tab.active').textContent.toLowerCase();
+            const code = document.getElementById(active + 'Code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy', 2000);
+            });
+        }
+    </script>
+</body>
+</html>
