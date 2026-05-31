@@ -198,13 +198,24 @@ export default function Home() {
   const [cooldown, setCooldown] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // ── Post-auth redirect ────────────────────────────────────────────────────
+  // profiles.rald.cloud is a pure identity gate — after auth, send the user
+  // to their intended destination (passed via ?redirect=) or the RALD homepage.
+  // Only *.rald.cloud URLs are accepted to prevent open-redirect attacks.
+  const resolveRedirect = useCallback(() => {
+    const params = new URLSearchParams(window.location.search);
+    const rd = params.get("redirect");
+    const safe = (url: string) => /^https:\/\/([\w-]+\.)*rald\.cloud(\/.*)?$/.test(url);
+    if (rd && safe(rd)) return rd;
+    if (user?.role === "admin" || user?.role === "operator") return "https://control.rald.cloud";
+    return "https://rald.cloud";
+  }, [user]);
+
   useEffect(() => {
     if (!loading && user) {
-      if (user.role === "merchant") setLocation("/merchant");
-      else if (user.role === "user") setLocation("/dashboard");
-      else window.location.href = "https://admin.rald.cloud";
+      window.location.href = resolveRedirect();
     }
-  }, [user, loading, setLocation]);
+  }, [user, loading, resolveRedirect]);
 
   const startCooldown = useCallback(() => {
     setCooldown(60);

@@ -40,6 +40,12 @@ export function Layout({ children }: { children: ReactNode }) {
             <Link href="/raldtics" className="text-muted-foreground hover:text-foreground transition-colors">Raldtics</Link>
             <Link href="/loop-voice" className="text-muted-foreground hover:text-foreground transition-colors">Loop Voice</Link>
             <Link href="/gitrald" className="text-muted-foreground hover:text-foreground transition-colors">GitRald</Link>
+            <a
+              href="https://profiles.rald.cloud?redirect=https://rald.cloud"
+              className="ml-2 px-4 py-1.5 rounded-sm bg-[#2ECFA3] text-black text-sm font-bold tracking-wide hover:bg-[#2ECFA3]/90 transition-colors"
+            >
+              Sign In
+            </a>
           </nav>
         </div>
       </header>

@@ -49,12 +49,16 @@ export function Home() {
           
           <FadeIn delay={0.3}>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="h-12 px-8 text-base bg-white text-black hover:bg-white/90">
-                Explore the Ecosystem <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-              <Button size="lg" variant="outline" className="h-12 px-8 text-base border-white/20 hover:bg-white/10">
-                Contact Sales
-              </Button>
+              <a href="https://profiles.rald.cloud?redirect=https://rald.cloud">
+                <Button size="lg" className="h-12 px-8 text-base bg-[#2ECFA3] text-black hover:bg-[#2ECFA3]/90 font-bold">
+                  Get Started <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </a>
+              <a href="https://profiles.rald.cloud?redirect=https://rald.cloud">
+                <Button size="lg" variant="outline" className="h-12 px-8 text-base border-white/20 hover:bg-white/10">
+                  Sign In
+                </Button>
+              </a>
             </div>
           </FadeIn>
         </div>
