@@ -29,11 +29,11 @@ pattern = "api.rald.cloud/*"
 zone_name = "rald.cloud"
 
 # ── KV Namespaces ─────────────────────────────────────────────────────────────
-# Rate limiting store — create with: wrangler kv:namespace create RATE_LIMIT_KV
-# Then replace the id below with the actual KV namespace ID.
+# Rate limiting store — created via Cloudflare dashboard
+# Namespace: rald-api-rate-limit
 [[kv_namespaces]]
 binding = "RATE_LIMIT_KV"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "37fbabca129f4e9382109338273f44c9"
 
 [build]
 command = ""
