@@ -80,10 +80,14 @@ echo ""
 # ── Cloudflare Pages deployments ──────────────────────────────────────────────
 echo "▶  Cloudflare Pages — SPA frontends"
 
-# app.rald.cloud → RALD Auth Portal (Cloudflare Pages)
-# Set in Pages dashboard: Custom domain → app.rald.cloud
-# CNAME is auto-created by Pages. Add here as CNAME to pages project:
+# profiles.rald.cloud → RALD Identity Portal (primary auth domain — replaces app.rald.cloud)
+# Add custom domain in Cloudflare Pages dashboard: rald-app → profiles.rald.cloud
+upsert_record CNAME "profiles.rald.cloud"     "rald-app.pages.dev"               "true"
+
+# app.rald.cloud → LEGACY — kept during DNS cutover (JS redirect to profiles.rald.cloud)
+# Remove this record once the cutover is complete and app.rald.cloud traffic has drained.
 upsert_record CNAME "app.rald.cloud"          "rald-app.pages.dev"               "true"
+
 upsert_record CNAME "credentials.rald.cloud"  "rald-credentials-portal.pages.dev" "true"
 upsert_record CNAME "control.rald.cloud"      "rald-control-center.pages.dev"    "true"
 upsert_record CNAME "rald.cloud"              "rald-marketing.pages.dev"          "true"   # root → marketing
@@ -162,7 +166,7 @@ echo "  Security → WAF → Managed Rules: Cloudflare Managed Ruleset ON"
 echo "  Security → DDoS → Customize → HTTP DDoS Attack Protection: High"
 echo ""
 echo "Cloudflare Pages — add custom domains:"
-echo "  rald-app               → app.rald.cloud"
+echo "  rald-app               → profiles.rald.cloud (primary)  app.rald.cloud (legacy redirect)"
 echo "  rald-credentials-portal → credentials.rald.cloud"
 echo "  rald-control-center    → control.rald.cloud"
 echo "  rald-marketing         → rald.cloud + www.rald.cloud"

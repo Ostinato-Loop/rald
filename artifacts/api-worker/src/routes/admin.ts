@@ -123,7 +123,7 @@ const SEED_PRODUCTS = [
   { slug: "dunarald", name: "DunaRald", tagline: "Entertainment & streaming", domain: "dunarald.rald.cloud", color: "#A855F7", status: "coming_soon", url: "https://dunarald.rald.cloud" },
   { slug: "dispatch", name: "Loop Dispatch", tagline: "Last-mile logistics", domain: "dispatch.rald.cloud", color: "#3B82F6", status: "coming_soon", url: "https://dispatch.rald.cloud" },
   { slug: "messenger", name: "Loop Messenger", tagline: "Business communications", domain: "messenger.rald.cloud", color: "#F97316", status: "live", url: "https://messenger.rald.cloud" },
-  { slug: "identity", name: "RALD Identity", tagline: "Unified auth & KYC", domain: "app.rald.cloud", color: "#2ECFA3", status: "live", url: "https://app.rald.cloud" },
+  { slug: "identity", name: "RALD Identity", tagline: "Unified auth & KYC", domain: "profiles.rald.cloud", color: "#2ECFA3", status: "live", url: "https://profiles.rald.cloud" },
   { slug: "gitrald", name: "GitRald", tagline: "Deployment governance", domain: "admin.rald.cloud", color: "#EF4444", status: "beta", url: "https://admin.rald.cloud" },
   { slug: "rald-sdk", name: "RALD SDK", tagline: "Platform SDK", domain: "sdk.rald.cloud", color: "#06B6D4", status: "beta", url: "https://rald.cloud/sdk" },
   { slug: "control-center", name: "RALD Control Center", tagline: "Ecosystem governance", domain: "control.rald.cloud", color: "#8B5CF6", status: "live", url: "https://control.rald.cloud" },

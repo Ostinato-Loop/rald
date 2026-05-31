@@ -13,6 +13,7 @@ import Services from "@/pages/services";
 import Deployments from "@/pages/deployments";
 import Credentials from "@/pages/credentials";
 import Products from "@/pages/products";
+import Health from "@/pages/health";
 import { Shell } from "@/components/layout/shell";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,7 @@ function Router() {
       <ProtectedRoute path="/credentials" component={Credentials} />
       <ProtectedRoute path="/products" component={Products} />
       <ProtectedRoute path="/sessions" component={Sessions} />
+      <ProtectedRoute path="/health" component={Health} />
       <Route component={NotFound} />
     </Switch>
   );

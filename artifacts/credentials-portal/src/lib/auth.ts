@@ -1,6 +1,6 @@
 // RALD Auth — shared state for credentials portal
 
-const AUTH_URL    = "https://app.rald.cloud";
+const AUTH_URL    = "https://profiles.rald.cloud";
 const TOKEN_KEY   = "rald_auth_token";
 const USER_KEY    = "rald_auth_user";
 
@@ -40,7 +40,7 @@ export function redirectToLogin(): void {
   window.location.href = `${AUTH_URL}?redirect=${encodeURIComponent(window.location.href)}`;
 }
 
-// On load: handle ?rald_token=... redirect from app.rald.cloud
+// On load: handle ?rald_token=... redirect from profiles.rald.cloud
 export function handleAuthRedirect(): boolean {
   const params = new URLSearchParams(window.location.search);
   const token  = params.get("rald_token");

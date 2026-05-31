@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
-import { Activity, Box, Database, KeyRound, LayoutDashboard, LogOut, Monitor } from "lucide-react";
+import { Activity, Box, Database, KeyRound, LayoutDashboard, LogOut, Monitor, HeartPulse } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RaldLogo } from "@/components/logo";
 
@@ -17,6 +17,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
     { href: "/credentials", label: "Credentials", icon: KeyRound },
     { href: "/products", label: "Products", icon: Database },
     { href: "/sessions", label: "Sessions", icon: Monitor },
+    { href: "/health", label: "Health", icon: HeartPulse },
   ];
 
   return (

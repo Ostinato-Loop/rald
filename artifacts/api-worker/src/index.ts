@@ -47,7 +47,8 @@ const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 app.use("*", cors({
   origin: [
     "https://rald.cloud",
-    "https://app.rald.cloud",
+    "https://profiles.rald.cloud",      // Identity Portal (primary auth domain)
+    "https://app.rald.cloud",           // Legacy — kept during DNS cutover
     "https://admin.rald.cloud",
     "https://control.rald.cloud",
     "https://credentials.rald.cloud",   // Developer Portal

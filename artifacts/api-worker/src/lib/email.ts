@@ -178,7 +178,7 @@ export async function sendWaitlistApprovedEmail(to: string, name: string, tempPa
       <p style="color:#EF4444;font-size:12px;margin:12px 0 0;">⚠️ Change your password immediately after your first login.</p>
     `)}
     <div style="text-align:center;margin:24px 0;">
-      ${btn("Sign In to RALD", "https://app.rald.cloud", color)}
+      ${btn("Sign In to RALD", "https://profiles.rald.cloud", color)}
     </div>
   `);
   await send(apiKey, FROM_RALD, to, "Your RALD account is ready!", html);
@@ -251,7 +251,7 @@ export async function sendSecurityAlertEmail(to: string, name: string, event: st
         <tr><td style="color:#64748B;font-size:13px;padding:6px 0;">Device</td><td style="color:#94A3B8;font-size:12px;padding:6px 0;">${userAgent.slice(0,50)}</td></tr>
       </table>
     `)}
-    ${p(`If this wasn't you, <a href="https://app.rald.cloud" style="color:${color};font-weight:700;">secure your account immediately</a> by changing your password.`, `color:#F0F4F8;`)}
+    ${p(`If this wasn't you, <a href="https://profiles.rald.cloud" style="color:${color};font-weight:700;">secure your account immediately</a> by changing your password.`, `color:#F0F4F8;`)}
   `);
   await send(apiKey, FROM_IDENTITY, to, "Security alert on your RALD account", html);
 }
