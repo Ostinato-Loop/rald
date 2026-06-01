@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: Api
-  version: 0.1.0
-  description: RALD Ecosystem API
+  version: 0.2.0
+  description: RALD Ecosystem API — includes Customer Graph (Phase D)
 servers:
   - url: /api
     description: Base API path
@@ -21,6 +21,10 @@ tags:
     description: System metrics
   - name: products
     description: RALD product catalog
+  - name: workspaces
+    description: Workspace (tenant) management
+  - name: customers
+    description: Customer Graph — canonical CRM for the RALD ecosystem
 
 paths:
   /healthz:
@@ -352,12 +356,684 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProductStats"
 
+  # ─────────────────────────────────────────────────────────────────────────────
+  # WORKSPACES  (Phase D — Customer Graph Foundation)
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  /workspaces:
+    get:
+      operationId: listWorkspaces
+      tags: [workspaces]
+      summary: List workspaces the current user belongs to
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Workspace list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Workspace"
+    post:
+      operationId: createWorkspace
+      tags: [workspaces]
+      summary: Create a new workspace
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkspaceInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+        "409":
+          description: Slug already taken
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /workspaces/{workspaceId}:
+    get:
+      operationId: getWorkspace
+      tags: [workspaces]
+      summary: Get workspace detail
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+      responses:
+        "200":
+          description: Workspace detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+        "403":
+          description: Not a member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /workspaces/{workspaceId}/members:
+    get:
+      operationId: listWorkspaceMembers
+      tags: [workspaces]
+      summary: List workspace members
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+      responses:
+        "200":
+          description: Member list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkspaceMember"
+    post:
+      operationId: addWorkspaceMember
+      tags: [workspaces]
+      summary: Add a member to the workspace
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkspaceMemberInput"
+      responses:
+        "201":
+          description: Member added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspaceMember"
+        "409":
+          description: Already a member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /workspaces/{workspaceId}/members/{userId}:
+    delete:
+      operationId: removeWorkspaceMember
+      tags: [workspaces]
+      summary: Remove a member from the workspace
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Removed
+
+  /workspaces/{workspaceId}/tags:
+    get:
+      operationId: listCustomerTags
+      tags: [workspaces]
+      summary: List all customer tags in the workspace
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+      responses:
+        "200":
+          description: Tag list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CustomerTag"
+    post:
+      operationId: createCustomerTag
+      tags: [workspaces]
+      summary: Create a customer tag
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerTagInput"
+      responses:
+        "201":
+          description: Tag created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerTag"
+
+  /workspaces/{workspaceId}/tags/{tagId}:
+    delete:
+      operationId: deleteCustomerTag
+      tags: [workspaces]
+      summary: Delete a customer tag
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+        - name: tagId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # CUSTOMERS  (Phase D — Customer Graph)
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  /workspaces/{workspaceId}/customers:
+    get:
+      operationId: listCustomers
+      tags: [customers]
+      summary: List and search customers in a workspace
+      description: |
+        Supports full-text search over name, email, phone, display name, and RALD customer ID.
+        Filter by status or tag. Paginated (max 100 per page).
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Search term — matches name, email, phone, rald ID
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive, blocked]
+        - name: tag
+          in: query
+          schema:
+            type: string
+          description: Filter by tag name
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+      responses:
+        "200":
+          description: Paginated customer list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerListResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: Forbidden — requires customer:view permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    post:
+      operationId: createCustomer
+      tags: [customers]
+      summary: Create a new customer
+      description: |
+        Performs duplicate detection on email and phone.
+        Returns 409 with existingCustomerId if a duplicate is found.
+        Auto-creates identity records for provided email/phone.
+        Logs a customer_created activity event.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerInput"
+      responses:
+        "201":
+          description: Customer created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "409":
+          description: Duplicate detected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DuplicateDetectionError"
+        "403":
+          description: Requires customer:create permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /workspaces/{workspaceId}/customers/merge:
+    post:
+      operationId: mergeCustomers
+      tags: [customers]
+      summary: Merge two customers — all data migrated to primary, secondary soft-deleted
+      description: |
+        Merges mergedCustomerId INTO primaryCustomerId.
+        All identities, notes, tags, and activity events are reassigned to primary.
+        A full snapshot of the merged customer is stored in customer_merge_history.
+        The merged customer is soft-deleted. This action is logged to the primary's timeline.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MergeCustomersInput"
+      responses:
+        "200":
+          description: Merge complete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MergeResult"
+        "400":
+          description: Invalid merge request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: Requires customer:merge permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: One or both customers not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /workspaces/{workspaceId}/customers/{customerId}:
+    get:
+      operationId: getCustomer
+      tags: [customers]
+      summary: Get a customer with full detail — includes identities and tags
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+        - $ref: "#/components/parameters/customerId"
+      responses:
+        "200":
+          description: Customer detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    patch:
+      operationId: updateCustomer
+      tags: [customers]
+      summary: Update customer fields
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+        - $ref: "#/components/parameters/customerId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerUpdate"
+      responses:
+        "200":
+          description: Updated customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "403":
+          description: Requires customer:update permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    delete:
+      operationId: deleteCustomer
+      tags: [customers]
+      summary: Soft-delete a customer (sets deletedAt, excluded from all queries)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+        - $ref: "#/components/parameters/customerId"
+      responses:
+        "204":
+          description: Deleted
+        "403":
+          description: Requires customer:delete permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /workspaces/{workspaceId}/customers/{customerId}/identities:
+    get:
+      operationId: listCustomerIdentities
+      tags: [customers]
+      summary: List all identity links for a customer
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+        - $ref: "#/components/parameters/customerId"
+      responses:
+        "200":
+          description: Identity list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CustomerIdentity"
+    post:
+      operationId: addCustomerIdentity
+      tags: [customers]
+      summary: Add an identity link (email, phone, WhatsApp handle, Instagram, etc.)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+        - $ref: "#/components/parameters/customerId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerIdentityInput"
+      responses:
+        "201":
+          description: Identity added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerIdentity"
+        "409":
+          description: Identity already exists for this workspace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /workspaces/{workspaceId}/customers/{customerId}/identities/{identityId}:
+    delete:
+      operationId: removeCustomerIdentity
+      tags: [customers]
+      summary: Remove an identity link from a customer
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+        - $ref: "#/components/parameters/customerId"
+        - name: identityId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Removed
+
+  /workspaces/{workspaceId}/customers/{customerId}/timeline:
+    get:
+      operationId: getCustomerTimeline
+      tags: [customers]
+      summary: Unified activity timeline for a customer
+      description: |
+        Returns chronological activity events including customer_created, identity_added,
+        identity_removed, tag_added, tag_removed, note_added, customer_updated,
+        customer_deleted, customers_merged, and any external events pushed by
+        integrations (Loop Messenger, Inbox, etc.).
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+        - $ref: "#/components/parameters/customerId"
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+      responses:
+        "200":
+          description: Activity timeline
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimelineResponse"
+
+  /workspaces/{workspaceId}/customers/{customerId}/notes:
+    get:
+      operationId: listCustomerNotes
+      tags: [customers]
+      summary: List notes for a customer (pinned first)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+        - $ref: "#/components/parameters/customerId"
+      responses:
+        "200":
+          description: Note list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CustomerNote"
+    post:
+      operationId: addCustomerNote
+      tags: [customers]
+      summary: Add a note to a customer
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+        - $ref: "#/components/parameters/customerId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerNoteInput"
+      responses:
+        "201":
+          description: Note added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerNote"
+        "403":
+          description: Requires customer:note permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /workspaces/{workspaceId}/customers/{customerId}/notes/{noteId}:
+    patch:
+      operationId: updateCustomerNote
+      tags: [customers]
+      summary: Update note content or pin status
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+        - $ref: "#/components/parameters/customerId"
+        - name: noteId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerNoteUpdate"
+      responses:
+        "200":
+          description: Updated note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerNote"
+    delete:
+      operationId: deleteCustomerNote
+      tags: [customers]
+      summary: Soft-delete a note
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+        - $ref: "#/components/parameters/customerId"
+        - name: noteId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /workspaces/{workspaceId}/customers/{customerId}/tags/{tagId}:
+    post:
+      operationId: assignTagToCustomer
+      tags: [customers]
+      summary: Assign a tag to a customer
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+        - $ref: "#/components/parameters/customerId"
+        - name: tagId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "201":
+          description: Tag assigned
+        "404":
+          description: Tag or customer not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    delete:
+      operationId: removeTagFromCustomer
+      tags: [customers]
+      summary: Remove a tag from a customer
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/workspaceId"
+        - $ref: "#/components/parameters/customerId"
+        - name: tagId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Removed
+
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+
+  parameters:
+    workspaceId:
+      name: workspaceId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Workspace UUID
+    customerId:
+      name: customerId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Customer UUID
 
   schemas:
     HealthStatus:
@@ -631,3 +1307,426 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Deployment"
+
+    # ── Workspace schemas ───────────────────────────────────────────────────────
+
+    Workspace:
+      type: object
+      required: [id, name, slug, plan, isActive, ownerId, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        plan:
+          type: string
+          enum: [starter, growth, enterprise]
+        isActive:
+          type: boolean
+        ownerId:
+          type: string
+        memberRole:
+          type: string
+          enum: [owner, admin, member, viewer]
+          description: Role of the requesting user (present when listing user workspaces)
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    WorkspaceInput:
+      type: object
+      required: [name, slug]
+      properties:
+        name:
+          type: string
+          maxLength: 120
+        slug:
+          type: string
+          maxLength: 60
+          pattern: "^[a-z0-9-]+$"
+
+    WorkspaceMember:
+      type: object
+      required: [id, workspaceId, userId, role, createdAt]
+      properties:
+        id:
+          type: string
+        workspaceId:
+          type: string
+        userId:
+          type: string
+        role:
+          type: string
+          enum: [owner, admin, member, viewer]
+        createdAt:
+          type: string
+          format: date-time
+
+    WorkspaceMemberInput:
+      type: object
+      required: [userId]
+      properties:
+        userId:
+          type: string
+        role:
+          type: string
+          enum: [owner, admin, member, viewer]
+          default: member
+
+    # ── Customer schemas ────────────────────────────────────────────────────────
+
+    Customer:
+      type: object
+      required: [id, workspaceId, raldCustomerId, firstName, status, totalSpent, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        workspaceId:
+          type: string
+        raldCustomerId:
+          type: string
+          description: "Human-readable CUST-XXXXXX identifier"
+          example: CUST-A3KX9M
+        firstName:
+          type: string
+        lastName:
+          type: ["string", "null"]
+        displayName:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+          format: email
+        phone:
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [active, inactive, blocked]
+        source:
+          type: ["string", "null"]
+        totalSpent:
+          type: string
+          description: Decimal string (e.g. "482000.00")
+        createdBy:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        deletedAt:
+          type: ["string", "null"]
+          format: date-time
+
+    CustomerDetail:
+      allOf:
+        - $ref: "#/components/schemas/Customer"
+        - type: object
+          properties:
+            identities:
+              type: array
+              items:
+                $ref: "#/components/schemas/CustomerIdentity"
+            tags:
+              type: array
+              items:
+                $ref: "#/components/schemas/CustomerTagAssigned"
+
+    CustomerInput:
+      type: object
+      required: [firstName]
+      properties:
+        firstName:
+          type: string
+          maxLength: 120
+        lastName:
+          type: string
+          maxLength: 120
+        displayName:
+          type: string
+          maxLength: 200
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          maxLength: 30
+        avatarUrl:
+          type: string
+          format: uri
+        source:
+          type: string
+          maxLength: 60
+
+    CustomerUpdate:
+      type: object
+      properties:
+        firstName:
+          type: string
+          maxLength: 120
+        lastName:
+          type: ["string", "null"]
+          maxLength: 120
+        displayName:
+          type: ["string", "null"]
+          maxLength: 200
+        email:
+          type: ["string", "null"]
+          format: email
+        phone:
+          type: ["string", "null"]
+          maxLength: 30
+        avatarUrl:
+          type: ["string", "null"]
+          format: uri
+        status:
+          type: string
+          enum: [active, inactive, blocked]
+        source:
+          type: ["string", "null"]
+          maxLength: 60
+
+    CustomerListResponse:
+      type: object
+      required: [data, page, limit, total]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Customer"
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+
+    CustomerIdentity:
+      type: object
+      required: [id, customerId, workspaceId, type, value, isPrimary, isVerified, createdAt]
+      properties:
+        id:
+          type: string
+        customerId:
+          type: string
+        workspaceId:
+          type: string
+        type:
+          type: string
+          enum: [email, phone, whatsapp, instagram, facebook, website, loop_messenger, custom]
+        value:
+          type: string
+        isPrimary:
+          type: boolean
+        isVerified:
+          type: boolean
+        customLabel:
+          type: ["string", "null"]
+        metadata:
+          type: ["object", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CustomerIdentityInput:
+      type: object
+      required: [type, value]
+      properties:
+        type:
+          type: string
+          enum: [email, phone, whatsapp, instagram, facebook, website, loop_messenger, custom]
+        value:
+          type: string
+          maxLength: 300
+        isPrimary:
+          type: boolean
+          default: false
+        customLabel:
+          type: string
+          maxLength: 80
+        metadata:
+          type: object
+
+    CustomerActivity:
+      type: object
+      required: [id, customerId, workspaceId, eventType, createdAt]
+      properties:
+        id:
+          type: string
+        customerId:
+          type: string
+        workspaceId:
+          type: string
+        eventType:
+          type: string
+          description: |
+            Known values: customer_created, customer_updated, customer_deleted,
+            identity_added, identity_removed, tag_added, tag_removed,
+            note_added, customers_merged. Extensible for integration events.
+        actorId:
+          type: ["string", "null"]
+        actorName:
+          type: ["string", "null"]
+        metadata:
+          type: ["object", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    TimelineResponse:
+      type: object
+      required: [data, page, limit, total]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/CustomerActivity"
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+
+    CustomerNote:
+      type: object
+      required: [id, customerId, workspaceId, content, isPinned, createdBy, createdAt]
+      properties:
+        id:
+          type: string
+        customerId:
+          type: string
+        workspaceId:
+          type: string
+        content:
+          type: string
+        isPinned:
+          type: boolean
+        createdBy:
+          type: string
+        createdByName:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        deletedAt:
+          type: ["string", "null"]
+          format: date-time
+
+    CustomerNoteInput:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          maxLength: 10000
+        isPinned:
+          type: boolean
+          default: false
+
+    CustomerNoteUpdate:
+      type: object
+      properties:
+        content:
+          type: string
+          maxLength: 10000
+        isPinned:
+          type: boolean
+
+    CustomerTag:
+      type: object
+      required: [id, workspaceId, name, createdAt]
+      properties:
+        id:
+          type: string
+        workspaceId:
+          type: string
+        name:
+          type: string
+        color:
+          type: ["string", "null"]
+          description: Hex color string (e.g. #10b981)
+        description:
+          type: ["string", "null"]
+        createdBy:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CustomerTagInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 80
+        color:
+          type: string
+          description: Hex color string
+        description:
+          type: string
+
+    CustomerTagAssigned:
+      allOf:
+        - $ref: "#/components/schemas/CustomerTag"
+        - type: object
+          properties:
+            assignedAt:
+              type: string
+              format: date-time
+            assignedBy:
+              type: ["string", "null"]
+
+    MergeCustomersInput:
+      type: object
+      required: [primaryCustomerId, mergedCustomerId]
+      properties:
+        primaryCustomerId:
+          type: string
+          description: The customer to keep
+        mergedCustomerId:
+          type: string
+          description: The customer to absorb and soft-delete
+
+    MergeResult:
+      type: object
+      required: [primary, mergedId]
+      properties:
+        primary:
+          $ref: "#/components/schemas/Customer"
+        mergedId:
+          type: string
+          description: ID of the absorbed (now soft-deleted) customer
+        snapshot:
+          type: object
+          properties:
+            id:
+              type: string
+
+    DuplicateDetectionError:
+      type: object
+      required: [error, existingCustomerId]
+      properties:
+        error:
+          type: string
+        existingCustomerId:
+          type: string
+        existingCustomerName:
+          type: string

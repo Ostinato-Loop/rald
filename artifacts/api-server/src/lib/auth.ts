@@ -97,3 +97,63 @@ export function requireRole(...roles: string[]) {
     next();
   };
 }
+
+// ─── Customer Graph RBAC ──────────────────────────────────────────────────────
+
+export const ROLE_PERMISSIONS: Record<string, string[]> = {
+  admin: [
+    // Customer Graph
+    "customer:view",
+    "customer:create",
+    "customer:update",
+    "customer:delete",
+    "customer:merge",
+    "customer:export",
+    "customer:tag",
+    "customer:note",
+    // Notifications
+    "notification:view",
+    "notification:create",
+    "notification:update",
+    "notification:dismiss",
+    "notification:manage_templates",
+    "notification:manage_preferences",
+  ],
+  operator: [
+    "customer:view",
+    "customer:create",
+    "customer:update",
+    "customer:export",
+    "customer:tag",
+    "customer:note",
+    "notification:view",
+    "notification:create",
+    "notification:update",
+    "notification:dismiss",
+    "notification:manage_preferences",
+  ],
+  viewer: [
+    "customer:view",
+    "notification:view",
+    "notification:dismiss",
+    "notification:manage_preferences",
+  ],
+};
+
+export function requirePermission(permission: string) {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    const userPerms = ROLE_PERMISSIONS[req.user.role] ?? [];
+    if (!userPerms.includes(permission)) {
+      res.status(403).json({
+        error: `Forbidden: requires ${permission} permission`,
+        yourRole: req.user.role,
+      });
+      return;
+    }
+    next();
+  };
+}
