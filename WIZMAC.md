@@ -158,6 +158,9 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 | 002 | 2026-06 | Loop Nav | BottomNav not visible on Feed and Me pages | AppShell wrapper missing from feed.tsx and me-launch.tsx | Added AppShell import and wrapper | Resolved |
 | 003 | 2026-06 | Loop Nav | /search Link had no route, silently redirected to / | Dead route with no catch | Changed to `<button>` (search overlay pending) | Resolved |
 | 004 | 2026-06 | loop-store.ts | Duplicate `import from "react"` statements | Sprint refactor did not consolidate imports | Merged into single `import React, { ... }` | Resolved |
+| 005 | 2026-06-04 | rald-auth-core | `/sso/silent` route was dead code — never reachable | Route registered AFTER `export default session` — Hono ignores routes added after export | Moved `/sso/silent` registration before `export default session` | Resolved |
+| 006 | 2026-06-04 | Messenger auth.tsx | Silent SSO (cookie-based re-auth) not implemented | Step 3 (`/auth/silent`) was missing; users always redirected to Profiles login even with valid `rald_session` cookie | Added `/auth/silent` call as Step 3 in the auth cascade | Resolved |
+| 007 | 2026-06-04 | Loop / Messenger | Mock identity data (avatar, name, bio) shown instead of real auth profile | `me` object from loop-mock.ts used in me-launch.tsx | Wired `useAuth()` profile fields; mock `me` removed; relationship graph shows honest zero | Resolved |
 
 ---
 
@@ -173,6 +176,10 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 | D006 | 2026-06 | Loop SPA uses Supabase directly for rooms/profiles | Loop is a more traditional SPA; Supabase realtime fits | LILCKY STUDIO |
 | D007 | 2026-06 | Feed wired to real listRooms() with mock fallback | Prevent empty states on pre-launch; graceful degradation | LILCKY STUDIO |
 | D008 | 2026-06 | Username regex allows ASCII only (a-z, 0-9, _) | URL-safe usernames; display name is the place for Unicode | LILCKY STUDIO |
+| D009 | 2026-06-04 | Sprint 01 scope: Identity, Discovery, Relationships, Retention only | No music, sports, PayRALD, Dispatch, or creator monetization in Sprint 01 | LILCKY STUDIO |
+| D010 | 2026-06-04 | `/sso/silent` route MUST be registered before `export default session` in rald-auth-core | Hono router ignores routes registered after the router is exported; route was dead code | LILCKY STUDIO |
+| D011 | 2026-06-04 | Cross-app navigation via `?rald_token=` handoff with valid-token check | Token is passed only if locally valid (not expired); falls back to Profiles login. Helpers in `@/lib/cross-app.ts` in Messenger. | LILCKY STUDIO |
+| D012 | 2026-06-04 | Sprint 01 Priority 3: Zero mock data visible to real users | All mock content items replaced with honest empty states. Profile data comes from `useAuth()` only. Relationship graph deferred to Sprint 02. | LILCKY STUDIO |
 
 ---
 
