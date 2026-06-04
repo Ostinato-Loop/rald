@@ -161,6 +161,12 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 | 005 | 2026-06-04 | rald-auth-core | `/sso/silent` route was dead code — never reachable | Route registered AFTER `export default session` — Hono ignores routes added after export | Moved `/sso/silent` registration before `export default session` | Resolved |
 | 006 | 2026-06-04 | Messenger auth.tsx | Silent SSO (cookie-based re-auth) not implemented | Step 3 (`/auth/silent`) was missing; users always redirected to Profiles login even with valid `rald_session` cookie | Added `/auth/silent` call as Step 3 in the auth cascade | Resolved |
 | 007 | 2026-06-04 | Loop / Messenger | Mock identity data (avatar, name, bio) shown instead of real auth profile | `me` object from loop-mock.ts used in me-launch.tsx | Wired `useAuth()` profile fields; mock `me` removed; relationship graph shows honest zero | Resolved |
+| 008 | 2026-06-04 | Loop | All SSO users had null profile in `/api/auth/me` | Loop `/api/auth/me` validated with `LOOP_JWT_SECRET` only; SSO users carry RALD tokens signed with `RALD_JWT_SECRET` → 401 silently swallowed in use-auth.tsx catch block | Updated `/api/auth/me` to try `RALD_JWT_SECRET` first; LOOP_JWT_SECRET as fallback; resolved `payload.id ?? payload.sub` for user ID | Resolved |
+| 009 | 2026-06-04 | Loop | Hardcoded fallback secret `"loop-dev-secret-change-in-prod"` in production worker | OTP verify path used `c.env.LOOP_JWT_SECRET ?? "loop-dev-secret-change-in-prod"` — if env var absent, any attacker could forge tokens | Removed all hardcoded fallback strings; fail-fast pattern enforced | Resolved |
+| 010 | 2026-06-04 | Messenger | `/auth/me` returned null avatar, null bio, email-derived name for all users | No Supabase lookup performed; identity derived from JWT claims only | Rewrote `/auth/me` to query Supabase `profiles` table; email fallback retained for users with no profile row | Resolved |
+| 011 | 2026-06-04 | Messenger / Loop | sv.rald.cloud blocked by CORS in Messenger and Loop workers | sv.rald.cloud present in rald-auth-core CORS but missing from Messenger and Loop workers | Added sv.rald.cloud to Messenger explicit CORS list; updated Loop CORS middleware to multi-origin reflect allowlist | Resolved |
+| 012 | 2026-06-04 | Messenger search | Phone number and username search returned no results | `/search/related` only queried `messenger_user_profiles` by display_name; users findable only by display name | Added Step 3: cross-reference `profiles` table for username, phone, and display_name; users without a messenger_user_profiles row are now discoverable | Resolved |
+| 013 | 2026-06-04 | Loop | me-launch.tsx RALD ID field showed `"rald_8f2c…a91"` (static hardcoded placeholder) for all users | Hard-coded string in JSX | Changed to `rald_${user.id.slice(0, 8)}…` from real `useAuth()` user object | Resolved |
 
 ---
 
@@ -180,6 +186,12 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 | D010 | 2026-06-04 | `/sso/silent` route MUST be registered before `export default session` in rald-auth-core | Hono router ignores routes registered after the router is exported; route was dead code | LILCKY STUDIO |
 | D011 | 2026-06-04 | Cross-app navigation via `?rald_token=` handoff with valid-token check | Token is passed only if locally valid (not expired); falls back to Profiles login. Helpers in `@/lib/cross-app.ts` in Messenger. | LILCKY STUDIO |
 | D012 | 2026-06-04 | Sprint 01 Priority 3: Zero mock data visible to real users | All mock content items replaced with honest empty states. Profile data comes from `useAuth()` only. Relationship graph deferred to Sprint 02. | LILCKY STUDIO |
+| D013 | 2026-06-04 | Loop `/api/auth/me` MUST try `RALD_JWT_SECRET` before `LOOP_JWT_SECRET` | SSO users store RALD tokens; legacy OTP users store LOOP tokens. The me endpoint must handle both. RALD_JWT_SECRET always tried first (Identity Axiom). | LILCKY STUDIO |
+| D014 | 2026-06-04 | No hardcoded JWT secret fallback strings in any worker | The `?? "loop-dev-secret-change-in-prod"` pattern is forbidden. All workers must fail-fast (503) if secrets are absent rather than silently using weak fallbacks. | LILCKY STUDIO |
+| D015 | 2026-06-04 | RALD JWTs use `id` claim; legacy Loop OTP JWTs use `sub` — always resolve with `payload.id ?? payload.sub` | RALD auth core issues `{ id, email, phone, role }`. Legacy OTP path issues `{ sub, phone, role }`. All profile lookups must use the resolved userId, never assume one field. | LILCKY STUDIO |
+| D016 | 2026-06-04 | Loop CORS middleware must reflect the request Origin against a production allowlist, not return a single static origin | Single-origin CORS breaks credentialed requests from sv.rald.cloud, messenger.rald.cloud etc. Middleware reads `Origin` header, reflects if allowlisted, adds `Vary: Origin`. | LILCKY STUDIO |
+| D017 | 2026-06-04 | Messenger `/auth/me` must fetch real profile from Supabase `profiles` table on every call | Previously returned null avatar, null bio, email-derived name. Now queries profiles table; falls back to email-derived name only if no row exists. | LILCKY STUDIO |
+| D018 | 2026-06-04 | sv.rald.cloud is a domain name only — no frontend, no backend | Referenced in CORS configs but no product exists. Do not advertise this URL. Classified RED in launch readiness. Build frontend before re-enabling. | LILCKY STUDIO |
 
 ---
 
@@ -232,8 +244,9 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 | Week | Focus | Key Deliverables | Status |
 |------|-------|-----------------|--------|
 | 2026-W23 | Foundation Lockdown Sprint | Identity propagation, Loop launch UI, Messenger communities/calls, WIZMAC, Governance SQL | Completed |
-| 2026-W24 | Feed Real Data + Constitution | Wire listRooms() to feed, write RALD Constitution, fix audit bugs, push to GitHub | In progress |
-| 2026-W25 | TBD | Pending W24 completion | Planned |
+| 2026-W24 | Feed Real Data + Constitution | Wire listRooms() to feed, write RALD Constitution, fix audit bugs, push to GitHub | Completed |
+| 2026-W24 (H) | Sprint 01-H Hardening | Fix Loop /auth/me RALD token bug, Messenger /auth/me profile lookup, Loop hardcoded RALD ID, CORS sv.rald.cloud, Messenger search phone+username, security hardening, full audit reports | Completed |
+| 2026-W25 | Push Notifications + Onboarding | Expo push tokens, FCM/APNs delivery, 3-step onboarding wizard, required display name at signup, avatar upload | Planned |
 
 **Weekly Planning Process:**
 1. Each Monday: Update this registry with the week's focus and deliverables.
@@ -289,5 +302,5 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 
 ---
 
-*WIZMAC v1.1 — Updated June 2026 — LILCKY STUDIO LIMITED*
+*WIZMAC v1.2 — Updated 2026-06-04 — LILCKY STUDIO LIMITED*
 *This document is the single source of truth for RALD platform operations.*
