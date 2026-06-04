@@ -42,7 +42,8 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 |---------|--------|--------|-------|------------|
 | Profiles | Production | profiles.rald.cloud | — | rald |
 | Loop | Production | loop.rald.cloud | React Router DOM v7, Vite, Supabase | loop |
-| Messenger | Production | messenger.rald.cloud | Wouter, Vite, CF Worker, D1 | messenger |
+| Messenger API | Production | messenger.rald.cloud | Hono, CF Worker, D1 | messenger |
+| Messenger Frontend | Production | chat.rald.cloud | Wouter, Vite, Cloudflare Pages | messenger |
 | RALD Auth Core | Production | auth.rald.cloud | TypeScript | rald |
 | PayRALD | Development | pay.rald.cloud | — | payrald |
 | RALD TV | Planned | tv.rald.cloud | — | — |
@@ -57,7 +58,8 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 |--------|-----------|---------|
 | profiles.rald.cloud | Profiles app | Identity, login, registration |
 | loop.rald.cloud | Loop SPA | Audio rooms, feed, communities |
-| messenger.rald.cloud | Messenger SPA | DMs, voice, calls |
+| messenger.rald.cloud | Messenger API (CF Worker) | DMs, voice, calls — API layer |
+| chat.rald.cloud | Messenger SPA (frontend) | Messenger web app consumer |
 | auth.rald.cloud | rald-auth-core | SSO, search, graph API |
 | pay.rald.cloud | PayRALD | Payments, wallets |
 | git.rald.cloud | GitRALD | Developer tools |
@@ -135,8 +137,8 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 /onboarding     → OnboardingPage (display name + avatar)
 /chats          → ChatsPage     (real D1 conversations + Supabase realtime)
 /chats/:convId  → ChatsPage     (conversation view)
-/communities    → CommunitiesPage (launch UI — mock pending backend)
-/calls          → CallsPage     (launch UI — mock pending backend)
+/communities    → CommunitiesPage (honest empty state — communities backend pending)
+/calls          → CallsPage     (honest empty state — call history API pending)
 /profile        → ProfilePage
 /settings       → SettingsPage
 ```
@@ -167,6 +169,11 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 | 011 | 2026-06-04 | Messenger / Loop | sv.rald.cloud blocked by CORS in Messenger and Loop workers | sv.rald.cloud present in rald-auth-core CORS but missing from Messenger and Loop workers | Added sv.rald.cloud to Messenger explicit CORS list; updated Loop CORS middleware to multi-origin reflect allowlist | Resolved |
 | 012 | 2026-06-04 | Messenger search | Phone number and username search returned no results | `/search/related` only queried `messenger_user_profiles` by display_name; users findable only by display name | Added Step 3: cross-reference `profiles` table for username, phone, and display_name; users without a messenger_user_profiles row are now discoverable | Resolved |
 | 013 | 2026-06-04 | Loop | me-launch.tsx RALD ID field showed `"rald_8f2c…a91"` (static hardcoded placeholder) for all users | Hard-coded string in JSX | Changed to `rald_${user.id.slice(0, 8)}…` from real `useAuth()` user object | Resolved |
+| 014 | 2026-06-04 | Messenger Worker | sv.rald.cloud (admin plane) wrongly added to Messenger CORS in Sprint 01-H; chat.rald.cloud (Messenger SPA) was missing from CORS allowlist | Sprint 01-H misidentified sv.rald.cloud as a Messenger consumer — it is the admin/supervisor plane | Removed sv.rald.cloud; added chat.rald.cloud as primary CORS origin with explanatory comment | Resolved |
+| 015 | 2026-06-04 | Messenger Frontend | Communities page rendered 6 fake communities (12,400–24,500 fake member counts, pravatar.cc avatars) from mock-data.ts to production users | communities.tsx imported `communities` array from mock-data.ts; no backend exists | Removed mock import; replaced with honest empty state and "Notify me when live" CTA | Resolved |
+| 016 | 2026-06-04 | Messenger Frontend | Calls page rendered 5 fake call history entries and 3 fake audio rooms (412–1,280 fake listener counts) from mock-data.ts | calls.tsx imported `calls` + `audioRooms` from mock-data.ts; no call history API exists | Removed mock imports; replaced with honest empty states for both sections | Resolved |
+| 017 | 2026-06-04 | Loop Frontend | Feed header showed "Lagos · Nigeria" as user location for every user worldwide | `userRegion` imported from loop-mock.ts was hardcoded `{ city: "Lagos", country: "Nigeria" }` — not derived from user profile | Removed userRegion import; removed location chip from Feed header entirely | Resolved |
+| 018 | 2026-06-04 | Loop Worker | `/api/trending` returned 3 hardcoded topic labels (AfroTech, Civic Watch, Beats & Bars) with count:0 | Phase 1 placeholder included invented topic names that implied editorial curation | Replaced with empty `topics: []`; updated cache key to `trending:v2` to bust stale cached response | Resolved |
 
 ---
 
@@ -192,6 +199,10 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 | D016 | 2026-06-04 | Loop CORS middleware must reflect the request Origin against a production allowlist, not return a single static origin | Single-origin CORS breaks credentialed requests from sv.rald.cloud, messenger.rald.cloud etc. Middleware reads `Origin` header, reflects if allowlisted, adds `Vary: Origin`. | LILCKY STUDIO |
 | D017 | 2026-06-04 | Messenger `/auth/me` must fetch real profile from Supabase `profiles` table on every call | Previously returned null avatar, null bio, email-derived name. Now queries profiles table; falls back to email-derived name only if no row exists. | LILCKY STUDIO |
 | D018 | 2026-06-04 | sv.rald.cloud is a domain name only — no frontend, no backend | Referenced in CORS configs but no product exists. Do not advertise this URL. Classified RED in launch readiness. Build frontend before re-enabling. | LILCKY STUDIO |
+| D019 | 2026-06-04 | Messenger frontend domain is chat.rald.cloud; messenger.rald.cloud is the API Worker | messenger.rald.cloud Cloudflare Worker route confirmed in wrangler.toml. The Messenger SPA (Vite/React) is deployed to Cloudflare Pages as chat.rald.cloud. CORS allowlist must use chat.rald.cloud as the primary frontend origin. | LILCKY STUDIO |
+| D020 | 2026-06-04 | sv.rald.cloud MUST NOT be in the Messenger Worker CORS allowlist | sv.rald.cloud is the RALD admin/supervisor plane. It has no need to make credentialed requests to the Messenger API. Adding it to CORS was an error introduced in Sprint 01-H. | LILCKY STUDIO |
+| D021 | 2026-06-04 | Trust rule: mock-data.ts files must never be imported in production pages visible to users | Fake member counts, fake usernames, and fake call history are trust violations. All pages must use real API data or honest empty states. mock-data.ts files are retained as reference shapes only. | LILCKY STUDIO |
+| D022 | 2026-06-04 | Loop Feed location chip removed until user profile API returns a real region field | Showing a hardcoded "Lagos · Nigeria" to a user in Nairobi destroys product intelligence perception. Location features require a `region` column on the `profiles` table, populated during onboarding. Defer until Sprint 03. | LILCKY STUDIO |
 
 ---
 
@@ -222,7 +233,7 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 | University communities | Planned | — | Loop |
 | Regional (city-level) | Planned | — | Loop |
 
-**Note:** Communities in the UI (communities.tsx) are currently mock data pending backend implementation.
+**Note:** Communities.tsx now shows an honest empty state. The mock community data has been removed from the production page. Community backend is Sprint 04.
 
 ---
 
@@ -246,7 +257,8 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 | 2026-W23 | Foundation Lockdown Sprint | Identity propagation, Loop launch UI, Messenger communities/calls, WIZMAC, Governance SQL | Completed |
 | 2026-W24 | Feed Real Data + Constitution | Wire listRooms() to feed, write RALD Constitution, fix audit bugs, push to GitHub | Completed |
 | 2026-W24 (H) | Sprint 01-H Hardening | Fix Loop /auth/me RALD token bug, Messenger /auth/me profile lookup, Loop hardcoded RALD ID, CORS sv.rald.cloud, Messenger search phone+username, security hardening, full audit reports | Completed |
-| 2026-W25 | Push Notifications + Onboarding | Expo push tokens, FCM/APNs delivery, 3-step onboarding wizard, required display name at signup, avatar upload | Planned |
+| 2026-W25 | Sprint 02 Trust & Retention | Remove all fake data (communities, calls, region chip, trending topics), fix Messenger CORS (chat.rald.cloud), 6 audit reports, WIZMAC v1.3 | Completed |
+| 2026-W26 | Sprint 03 People & Push | Loop people search, Messenger push delivery (server-side VAPID), invite mechanism, onboarding improvements (suggested people, avatar), relationship graph foundation | Planned |
 
 **Weekly Planning Process:**
 1. Each Monday: Update this registry with the week's focus and deliverables.
@@ -302,5 +314,5 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 
 ---
 
-*WIZMAC v1.2 — Updated 2026-06-04 — LILCKY STUDIO LIMITED*
+*WIZMAC v1.3 — Updated 2026-06-04 — LILCKY STUDIO LIMITED*
 *This document is the single source of truth for RALD platform operations.*
