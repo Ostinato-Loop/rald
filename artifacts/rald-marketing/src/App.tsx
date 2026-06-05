@@ -5,6 +5,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 
 import { Home } from "./pages/home";
+import { LoopPage } from "./pages/loop";
+import { MessengerPage } from "./pages/messenger";
+import { ProfilesPage } from "./pages/profiles";
 import { LoopBusiness } from "./pages/loop-business";
 import { PayRald } from "./pages/payrald";
 import { LoopDispatch } from "./pages/loop-dispatch";
@@ -19,6 +22,9 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/loop" component={LoopPage} />
+      <Route path="/messenger" component={MessengerPage} />
+      <Route path="/profiles" component={ProfilesPage} />
       <Route path="/loop-business" component={LoopBusiness} />
       <Route path="/payrald" component={PayRald} />
       <Route path="/loop-dispatch" component={LoopDispatch} />
