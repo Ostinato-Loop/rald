@@ -42,8 +42,7 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 |---------|--------|--------|-------|------------|
 | Profiles | Production | profiles.rald.cloud | — | rald |
 | Loop | Production | loop.rald.cloud | React Router DOM v7, Vite, Supabase | loop |
-| Messenger API | Production | messenger.rald.cloud | Hono, CF Worker, D1 | messenger |
-| Messenger Frontend | Production | chat.rald.cloud | Wouter, Vite, Cloudflare Pages | messenger |
+| Messenger | Production | messenger.rald.cloud | Wouter, Vite, CF Worker, D1 | messenger |
 | RALD Auth Core | Production | auth.rald.cloud | TypeScript | rald |
 | PayRALD | Development | pay.rald.cloud | — | payrald |
 | RALD TV | Planned | tv.rald.cloud | — | — |
@@ -58,8 +57,7 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 |--------|-----------|---------|
 | profiles.rald.cloud | Profiles app | Identity, login, registration |
 | loop.rald.cloud | Loop SPA | Audio rooms, feed, communities |
-| messenger.rald.cloud | Messenger API (CF Worker) | DMs, voice, calls — API layer |
-| chat.rald.cloud | Messenger SPA (frontend) | Messenger web app consumer |
+| messenger.rald.cloud | Messenger SPA | DMs, voice, calls |
 | auth.rald.cloud | rald-auth-core | SSO, search, graph API |
 | pay.rald.cloud | PayRALD | Payments, wallets |
 | git.rald.cloud | GitRALD | Developer tools |
@@ -137,8 +135,8 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 /onboarding     → OnboardingPage (display name + avatar)
 /chats          → ChatsPage     (real D1 conversations + Supabase realtime)
 /chats/:convId  → ChatsPage     (conversation view)
-/communities    → CommunitiesPage (honest empty state — communities backend pending)
-/calls          → CallsPage     (honest empty state — call history API pending)
+/communities    → CommunitiesPage (launch UI — mock pending backend)
+/calls          → CallsPage     (launch UI — mock pending backend)
 /profile        → ProfilePage
 /settings       → SettingsPage
 ```
@@ -160,20 +158,7 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 | 002 | 2026-06 | Loop Nav | BottomNav not visible on Feed and Me pages | AppShell wrapper missing from feed.tsx and me-launch.tsx | Added AppShell import and wrapper | Resolved |
 | 003 | 2026-06 | Loop Nav | /search Link had no route, silently redirected to / | Dead route with no catch | Changed to `<button>` (search overlay pending) | Resolved |
 | 004 | 2026-06 | loop-store.ts | Duplicate `import from "react"` statements | Sprint refactor did not consolidate imports | Merged into single `import React, { ... }` | Resolved |
-| 005 | 2026-06-04 | rald-auth-core | `/sso/silent` route was dead code — never reachable | Route registered AFTER `export default session` — Hono ignores routes added after export | Moved `/sso/silent` registration before `export default session` | Resolved |
-| 006 | 2026-06-04 | Messenger auth.tsx | Silent SSO (cookie-based re-auth) not implemented | Step 3 (`/auth/silent`) was missing; users always redirected to Profiles login even with valid `rald_session` cookie | Added `/auth/silent` call as Step 3 in the auth cascade | Resolved |
-| 007 | 2026-06-04 | Loop / Messenger | Mock identity data (avatar, name, bio) shown instead of real auth profile | `me` object from loop-mock.ts used in me-launch.tsx | Wired `useAuth()` profile fields; mock `me` removed; relationship graph shows honest zero | Resolved |
-| 008 | 2026-06-04 | Loop | All SSO users had null profile in `/api/auth/me` | Loop `/api/auth/me` validated with `LOOP_JWT_SECRET` only; SSO users carry RALD tokens signed with `RALD_JWT_SECRET` → 401 silently swallowed in use-auth.tsx catch block | Updated `/api/auth/me` to try `RALD_JWT_SECRET` first; LOOP_JWT_SECRET as fallback; resolved `payload.id ?? payload.sub` for user ID | Resolved |
-| 009 | 2026-06-04 | Loop | Hardcoded fallback secret `"loop-dev-secret-change-in-prod"` in production worker | OTP verify path used `c.env.LOOP_JWT_SECRET ?? "loop-dev-secret-change-in-prod"` — if env var absent, any attacker could forge tokens | Removed all hardcoded fallback strings; fail-fast pattern enforced | Resolved |
-| 010 | 2026-06-04 | Messenger | `/auth/me` returned null avatar, null bio, email-derived name for all users | No Supabase lookup performed; identity derived from JWT claims only | Rewrote `/auth/me` to query Supabase `profiles` table; email fallback retained for users with no profile row | Resolved |
-| 011 | 2026-06-04 | Messenger / Loop | sv.rald.cloud blocked by CORS in Messenger and Loop workers | sv.rald.cloud present in rald-auth-core CORS but missing from Messenger and Loop workers | Added sv.rald.cloud to Messenger explicit CORS list; updated Loop CORS middleware to multi-origin reflect allowlist | Resolved |
-| 012 | 2026-06-04 | Messenger search | Phone number and username search returned no results | `/search/related` only queried `messenger_user_profiles` by display_name; users findable only by display name | Added Step 3: cross-reference `profiles` table for username, phone, and display_name; users without a messenger_user_profiles row are now discoverable | Resolved |
-| 013 | 2026-06-04 | Loop | me-launch.tsx RALD ID field showed `"rald_8f2c…a91"` (static hardcoded placeholder) for all users | Hard-coded string in JSX | Changed to `rald_${user.id.slice(0, 8)}…` from real `useAuth()` user object | Resolved |
-| 014 | 2026-06-04 | Messenger Worker | sv.rald.cloud (admin plane) wrongly added to Messenger CORS in Sprint 01-H; chat.rald.cloud (Messenger SPA) was missing from CORS allowlist | Sprint 01-H misidentified sv.rald.cloud as a Messenger consumer — it is the admin/supervisor plane | Removed sv.rald.cloud; added chat.rald.cloud as primary CORS origin with explanatory comment | Resolved |
-| 015 | 2026-06-04 | Messenger Frontend | Communities page rendered 6 fake communities (12,400–24,500 fake member counts, pravatar.cc avatars) from mock-data.ts to production users | communities.tsx imported `communities` array from mock-data.ts; no backend exists | Removed mock import; replaced with honest empty state and "Notify me when live" CTA | Resolved |
-| 016 | 2026-06-04 | Messenger Frontend | Calls page rendered 5 fake call history entries and 3 fake audio rooms (412–1,280 fake listener counts) from mock-data.ts | calls.tsx imported `calls` + `audioRooms` from mock-data.ts; no call history API exists | Removed mock imports; replaced with honest empty states for both sections | Resolved |
-| 017 | 2026-06-04 | Loop Frontend | Feed header showed "Lagos · Nigeria" as user location for every user worldwide | `userRegion` imported from loop-mock.ts was hardcoded `{ city: "Lagos", country: "Nigeria" }` — not derived from user profile | Removed userRegion import; removed location chip from Feed header entirely | Resolved |
-| 018 | 2026-06-04 | Loop Worker | `/api/trending` returned 3 hardcoded topic labels (AfroTech, Civic Watch, Beats & Bars) with count:0 | Phase 1 placeholder included invented topic names that implied editorial curation | Replaced with empty `topics: []`; updated cache key to `trending:v2` to bust stale cached response | Resolved |
+| 005 | 2026-06 | loop.rald.cloud | App shell loads (HTTP 200) but user cannot experience the app | Loop API in production is missing env vars (RALD_JWT_SECRET, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY) and/or the /api server is not deployed behind the domain | Set env vars in the production deployment platform. Verify `loop.rald.cloud/api/health` returns 200 before re-testing SSO. | Open |
 
 ---
 
@@ -189,20 +174,9 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 | D006 | 2026-06 | Loop SPA uses Supabase directly for rooms/profiles | Loop is a more traditional SPA; Supabase realtime fits | LILCKY STUDIO |
 | D007 | 2026-06 | Feed wired to real listRooms() with mock fallback | Prevent empty states on pre-launch; graceful degradation | LILCKY STUDIO |
 | D008 | 2026-06 | Username regex allows ASCII only (a-z, 0-9, _) | URL-safe usernames; display name is the place for Unicode | LILCKY STUDIO |
-| D009 | 2026-06-04 | Sprint 01 scope: Identity, Discovery, Relationships, Retention only | No music, sports, PayRALD, Dispatch, or creator monetization in Sprint 01 | LILCKY STUDIO |
-| D010 | 2026-06-04 | `/sso/silent` route MUST be registered before `export default session` in rald-auth-core | Hono router ignores routes registered after the router is exported; route was dead code | LILCKY STUDIO |
-| D011 | 2026-06-04 | Cross-app navigation via `?rald_token=` handoff with valid-token check | Token is passed only if locally valid (not expired); falls back to Profiles login. Helpers in `@/lib/cross-app.ts` in Messenger. | LILCKY STUDIO |
-| D012 | 2026-06-04 | Sprint 01 Priority 3: Zero mock data visible to real users | All mock content items replaced with honest empty states. Profile data comes from `useAuth()` only. Relationship graph deferred to Sprint 02. | LILCKY STUDIO |
-| D013 | 2026-06-04 | Loop `/api/auth/me` MUST try `RALD_JWT_SECRET` before `LOOP_JWT_SECRET` | SSO users store RALD tokens; legacy OTP users store LOOP tokens. The me endpoint must handle both. RALD_JWT_SECRET always tried first (Identity Axiom). | LILCKY STUDIO |
-| D014 | 2026-06-04 | No hardcoded JWT secret fallback strings in any worker | The `?? "loop-dev-secret-change-in-prod"` pattern is forbidden. All workers must fail-fast (503) if secrets are absent rather than silently using weak fallbacks. | LILCKY STUDIO |
-| D015 | 2026-06-04 | RALD JWTs use `id` claim; legacy Loop OTP JWTs use `sub` — always resolve with `payload.id ?? payload.sub` | RALD auth core issues `{ id, email, phone, role }`. Legacy OTP path issues `{ sub, phone, role }`. All profile lookups must use the resolved userId, never assume one field. | LILCKY STUDIO |
-| D016 | 2026-06-04 | Loop CORS middleware must reflect the request Origin against a production allowlist, not return a single static origin | Single-origin CORS breaks credentialed requests from sv.rald.cloud, messenger.rald.cloud etc. Middleware reads `Origin` header, reflects if allowlisted, adds `Vary: Origin`. | LILCKY STUDIO |
-| D017 | 2026-06-04 | Messenger `/auth/me` must fetch real profile from Supabase `profiles` table on every call | Previously returned null avatar, null bio, email-derived name. Now queries profiles table; falls back to email-derived name only if no row exists. | LILCKY STUDIO |
-| D018 | 2026-06-04 | sv.rald.cloud is a domain name only — no frontend, no backend | Referenced in CORS configs but no product exists. Do not advertise this URL. Classified RED in launch readiness. Build frontend before re-enabling. | LILCKY STUDIO |
-| D019 | 2026-06-04 | Messenger frontend domain is chat.rald.cloud; messenger.rald.cloud is the API Worker | messenger.rald.cloud Cloudflare Worker route confirmed in wrangler.toml. The Messenger SPA (Vite/React) is deployed to Cloudflare Pages as chat.rald.cloud. CORS allowlist must use chat.rald.cloud as the primary frontend origin. | LILCKY STUDIO |
-| D020 | 2026-06-04 | sv.rald.cloud MUST NOT be in the Messenger Worker CORS allowlist | sv.rald.cloud is the RALD admin/supervisor plane. It has no need to make credentialed requests to the Messenger API. Adding it to CORS was an error introduced in Sprint 01-H. | LILCKY STUDIO |
-| D021 | 2026-06-04 | Trust rule: mock-data.ts files must never be imported in production pages visible to users | Fake member counts, fake usernames, and fake call history are trust violations. All pages must use real API data or honest empty states. mock-data.ts files are retained as reference shapes only. | LILCKY STUDIO |
-| D022 | 2026-06-04 | Loop Feed location chip removed until user profile API returns a real region field | Showing a hardcoded "Lagos · Nigeria" to a user in Nairobi destroys product intelligence perception. Location features require a `region` column on the `profiles` table, populated during onboarding. Defer until Sprint 03. | LILCKY STUDIO |
+| D009 | 2026-06 | Notification types LOCKED to 3: direct_message, friend_request, connection_accepted | Trust & Retention Sprint principle: no notification noise. Every other type disabled at DB constraint level — cannot be bypassed by application code. | LILCKY STUDIO |
+| D010 | 2026-06 | DM webhook (/api/notify/dm) authenticated with MESSENGER_WEBHOOK_KEY, not RALD JWT | Messenger CF Worker is a separate trusted service, not a user agent. Shared secret is simpler than cross-service JWT issuance. | LILCKY STUDIO |
+| D011 | 2026-06 | friend_requests table uses enum-like TEXT CHECK constraint (pending/accepted/declined/cancelled) | Keeps all social graph state in Supabase, queryable, RLS-protected, and auditable. No separate state machine service needed at pre-scale. | LILCKY STUDIO |
 
 ---
 
@@ -214,6 +188,8 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 | 0002 | 2026 | rald | SSO sessions and refresh tokens | Yes |
 | 0003 | 2026 | rald | User graph and connections | Yes |
 | 0004 | 2026-06 | rald | lifecycle_state column on registered_apps; seeded Loop, Messenger, Profiles, Auth Core | Yes |
+| **Loop-001** | 2026-06 | loop | Initial Supabase schema — users, rooms, room_members, connections | Yes |
+| **Loop-002** | 2026-06 | loop | Notifications + friend_requests tables; Supabase triggers for auto-notify on friend_request and connection_accepted events; RLS policies | Yes |
 
 **Migration Policy:**
 - All migrations use `IF NOT EXISTS` / `IF EXISTS` guards.
@@ -233,7 +209,7 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 | University communities | Planned | — | Loop |
 | Regional (city-level) | Planned | — | Loop |
 
-**Note:** Communities.tsx now shows an honest empty state. The mock community data has been removed from the production page. Community backend is Sprint 04.
+**Note:** Communities in the UI (communities.tsx) are currently mock data pending backend implementation.
 
 ---
 
@@ -255,10 +231,8 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 | Week | Focus | Key Deliverables | Status |
 |------|-------|-----------------|--------|
 | 2026-W23 | Foundation Lockdown Sprint | Identity propagation, Loop launch UI, Messenger communities/calls, WIZMAC, Governance SQL | Completed |
-| 2026-W24 | Feed Real Data + Constitution | Wire listRooms() to feed, write RALD Constitution, fix audit bugs, push to GitHub | Completed |
-| 2026-W24 (H) | Sprint 01-H Hardening | Fix Loop /auth/me RALD token bug, Messenger /auth/me profile lookup, Loop hardcoded RALD ID, CORS sv.rald.cloud, Messenger search phone+username, security hardening, full audit reports | Completed |
-| 2026-W25 | Sprint 02 Trust & Retention | Remove all fake data (communities, calls, region chip, trending topics), fix Messenger CORS (chat.rald.cloud), 6 audit reports, WIZMAC v1.3 | Completed |
-| 2026-W26 | Sprint 03 People & Push | Loop people search, Messenger push delivery (server-side VAPID), invite mechanism, onboarding improvements (suggested people, avatar), relationship graph foundation | Planned |
+| 2026-W24 | Feed Real Data + Constitution | Wire listRooms() to feed, write RALD Constitution, fix audit bugs, push to GitHub | In progress |
+| 2026-W25 | TBD | Pending W24 completion | Planned |
 
 **Weekly Planning Process:**
 1. Each Monday: Update this registry with the week's focus and deliverables.
@@ -314,5 +288,55 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 
 ---
 
-*WIZMAC v1.3 — Updated 2026-06-04 — LILCKY STUDIO LIMITED*
+---
+
+## 13. Notification Infrastructure
+
+### 13.1 Allowed Notification Types (LOCKED — DO NOT EXTEND WITHOUT RALD CONSTITUTION AMENDMENT)
+
+| Type | Trigger | Actor | Resource |
+|------|---------|-------|---------|
+| `direct_message` | Messenger CF Worker → POST /api/notify/dm | Sender user ID | Message ID (D1) |
+| `friend_request` | DB trigger on friend_requests INSERT | Requester user ID | friend_request row ID |
+| `connection_accepted` | DB trigger on friend_requests UPDATE (pending→accepted) | Acceptor user ID | friend_request row ID |
+
+> **ALL OTHER NOTIFICATION TYPES ARE DISABLED AT DATABASE CONSTRAINT LEVEL.**
+> The `notifications.type` column has a `CHECK` constraint. Any application code attempting to insert a different type will receive a Postgres error 23514.
+
+### 13.2 API Endpoints
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/api/notifications` | Bearer (Loop JWT) | List notifications for current user. Optional `?type=` and `?limit=` filters. |
+| `GET` | `/api/notifications/count` | Bearer (Loop JWT) | Returns `{ unread: number }` for notification badge. |
+| `POST` | `/api/notifications/read` | Bearer (Loop JWT) | Mark notifications as read. Body: `{ ids?: string[] }` (omit to mark all). |
+| `POST` | `/api/notify/dm` | `X-Messenger-Webhook-Key` header | Internal webhook called by Messenger CF Worker on DM send. |
+
+### 13.3 Friend Request API Endpoints
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/api/friend-requests` | Bearer | Send a friend request. Body: `{ addressee_id: string }`. Returns 409 if duplicate. |
+| `GET` | `/api/friend-requests` | Bearer | List incoming + outgoing requests. Optional `?direction=incoming\|outgoing`. |
+| `PUT` | `/api/friend-requests/:id/accept` | Bearer | Accept an incoming request. Creates `connection_accepted` notification automatically. |
+| `PUT` | `/api/friend-requests/:id/decline` | Bearer | Decline an incoming request. |
+| `DELETE` | `/api/friend-requests/:id` | Bearer | Cancel an outgoing request. |
+
+### 13.4 Required Environment Variables (Loop API — Production)
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `RALD_JWT_SECRET` | ✅ CRITICAL | Loop JWT signing secret. App will not start without it. |
+| `SUPABASE_URL` | ✅ CRITICAL | Supabase project URL. |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✅ CRITICAL | Supabase service role key (bypasses RLS for server-side ops). |
+| `MESSENGER_WEBHOOK_KEY` | ⚠️ Required for DM notifs | Shared secret between Loop API and Messenger CF Worker. `/api/notify/dm` returns 503 if not set. |
+
+### 13.5 Supabase Triggers (Auto-provisioned by Migration Loop-002)
+
+- `notify_on_friend_request` — fires on `INSERT` into `friend_requests`, inserts `friend_request` notification for the addressee.
+- `notify_on_connection_accepted` — fires on `UPDATE` where status changes to `accepted`, inserts `connection_accepted` notification for the requester.
+
+---
+
+*WIZMAC v1.2 — Updated June 2026 — LILCKY STUDIO LIMITED*
 *This document is the single source of truth for RALD platform operations.*
