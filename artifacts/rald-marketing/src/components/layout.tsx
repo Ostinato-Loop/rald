@@ -34,12 +34,11 @@ export function Layout({ children }: { children: ReactNode }) {
             <RaldLogo className="h-8 w-auto" />
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-            <Link href="/loop-business" className="text-muted-foreground hover:text-foreground transition-colors">Loop Business</Link>
+            <Link href="/loop" className="text-muted-foreground hover:text-foreground transition-colors">Loop</Link>
+            <Link href="/messenger" className="text-muted-foreground hover:text-foreground transition-colors">Messenger</Link>
+            <Link href="/profiles" className="text-muted-foreground hover:text-foreground transition-colors">Profiles</Link>
+            <Link href="/loop-business" className="text-muted-foreground hover:text-foreground transition-colors">Business</Link>
             <Link href="/payrald" className="text-muted-foreground hover:text-foreground transition-colors">PayRald</Link>
-            <Link href="/loop-dispatch" className="text-muted-foreground hover:text-foreground transition-colors">Loop Dispatch</Link>
-            <Link href="/raldtics" className="text-muted-foreground hover:text-foreground transition-colors">Raldtics</Link>
-            <Link href="/loop-voice" className="text-muted-foreground hover:text-foreground transition-colors">Loop Voice</Link>
-            <Link href="/gitrald" className="text-muted-foreground hover:text-foreground transition-colors">GitRald</Link>
             <a
               href="https://profiles.rald.cloud?redirect=https://rald.cloud"
               className="ml-2 px-4 py-1.5 rounded-sm bg-[#2ECFA3] text-black text-sm font-bold tracking-wide hover:bg-[#2ECFA3]/90 transition-colors"
@@ -65,15 +64,21 @@ export function Layout({ children }: { children: ReactNode }) {
                 A fully unified AI-native African infrastructure and commerce operating system.
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-12 text-sm">
+            <div className="grid grid-cols-3 gap-12 text-sm">
               <div className="flex flex-col gap-2">
-                <span className="font-semibold mb-2">Products</span>
+                <span className="font-semibold mb-2 text-white">Consumer</span>
+                <Link href="/loop" className="text-muted-foreground hover:text-foreground">Loop</Link>
+                <Link href="/messenger" className="text-muted-foreground hover:text-foreground">Messenger</Link>
+                <Link href="/profiles" className="text-muted-foreground hover:text-foreground">Profiles</Link>
+              </div>
+              <div className="flex flex-col gap-2">
+                <span className="font-semibold mb-2 text-white">Business</span>
                 <Link href="/loop-business" className="text-muted-foreground hover:text-foreground">Loop Business</Link>
                 <Link href="/payrald" className="text-muted-foreground hover:text-foreground">PayRald</Link>
                 <Link href="/loop-dispatch" className="text-muted-foreground hover:text-foreground">Loop Dispatch</Link>
               </div>
               <div className="flex flex-col gap-2">
-                <span className="font-semibold mb-2 opacity-0 select-none">More</span>
+                <span className="font-semibold mb-2 text-white">Developer</span>
                 <Link href="/raldtics" className="text-muted-foreground hover:text-foreground">Raldtics</Link>
                 <Link href="/loop-voice" className="text-muted-foreground hover:text-foreground">Loop Voice</Link>
                 <Link href="/gitrald" className="text-muted-foreground hover:text-foreground">GitRald</Link>
