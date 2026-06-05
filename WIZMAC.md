@@ -340,3 +340,124 @@ profiles.rald.cloud          ← Identity Authority (THE truth)
 
 *WIZMAC v1.2 — Updated June 2026 — LILCKY STUDIO LIMITED*
 *This document is the single source of truth for RALD platform operations.*
+
+---
+
+## 14. Hardening Sprint — 2026-06-05
+
+### 14.1 CI Pipeline Fixes
+
+All 3 repos had CI pipeline failures as of 2026-06-05. All fixed this sprint.
+
+| Repo | Root Cause | Fix |
+|------|-----------|-----|
+| `rald-auth-core` | `PromiseLike<void>.catch()` in `src/routes/auth.ts:173` — Supabase `.insert()` returns `PromiseLike`, not `Promise` | Changed to `.then(onF, onR)` two-argument form |
+| `loop` | `ended_at` column reference in `artifacts/loop/src/lib/api/rooms.ts:109` — column doesn't exist in rooms table schema | Removed `ended_at` from update; room lifecycle tracked via `is_live + updated_at` |
+| `messenger` | — | Was already green; no changes required |
+
+**Post-sprint CI status:** All 3 repos ✅ green.
+
+### 14.2 Schema Corrections
+
+- **rooms table**: NO `ended_at` column. Room lifecycle: `is_live=false` means room ended. `updated_at` is auto-updated by Supabase.
+- **messenger `workspace_id`**: Was UUID NOT NULL — but auth middleware passes string `"consumer"`. Fixed in migration `20260605_messenger_schema_fixes.sql` (ALTER COLUMN TYPE TEXT). Migration PENDING application (see §14.4).
+
+### 14.3 New Endpoint: Public Rooms Listing
+
+Added `GET /api/rooms` to the loop Cloudflare Worker (no auth required):
+
+```
+GET https://loop-api.rald.cloud/api/rooms
+Query params: ?category= ?limit= ?offset=
+Returns: { rooms: [...], count: N, offset: 0, limit: 20 }
+```
+
+Rooms ordered by: `is_live DESC, audience_count DESC, created_at DESC`.
+Host profile joined from `profiles` table via FK.
+
+### 14.4 Messenger DB Migrations — PENDING (Owner Action Required)
+
+Migration files written and apply workflow created, but **not yet applied to production Supabase**.
+
+**Files:**
+- `messenger/workers/loop-messenger-api/supabase/migrations/20260602_messenger_foundation.sql`
+- `messenger/workers/loop-messenger-api/supabase/migrations/20260605_messenger_schema_fixes.sql`
+
+**Workflow:** `messenger/.github/workflows/apply-migrations.yml`
+
+**To apply:**
+1. Supabase Dashboard → Settings → Database → copy DB password
+2. GitHub → Ostinato-Loop/messenger → Secrets → add `SUPABASE_DB_PASSWORD`
+3. GitHub Actions → "Apply Supabase Migrations" → Run workflow
+
+**Impact:** ALL messenger conversation/message endpoints fail until migrations are applied.
+
+### 14.5 chat.rald.cloud DNS — PENDING (Owner Action Required)
+
+Cloudflare Pages project `loop-messenger` is deployed but custom domain not added.
+
+```bash
+wrangler pages domain add loop-messenger chat.rald.cloud
+```
+
+OR via Cloudflare Dashboard → Pages → loop-messenger → Custom domains → Add domain.
+
+### 14.6 Production Readiness Score
+
+| Sprint | Date | Score |
+|--------|------|-------|
+| Baseline | Pre-sprint | 48/100 |
+| Hardening | 2026-06-05 | 67/100 |
+| Target (after owner actions) | — | 85/100 |
+
+---
+
+## 15. Trust & Positioning Sprint — 2026-06-05
+
+### 15.1 Marketing Pages Added
+
+Three new marketing/trust pages added to `rald-marketing` (hosted at `rald.cloud`):
+
+| Page | Route | Message |
+|------|-------|---------|
+| Loop Marketing | `/loop` | "Real-time voice communities built around relationships." |
+| Messenger Marketing | `/messenger` | "Your private relationship network." |
+| Profiles Trust | `/profiles` | "One identity. Everywhere you go." |
+
+### 15.2 Navigation Updated
+
+**Nav bar** (rald-marketing):
+```
+Loop | Messenger | Profiles | Business | PayRald | [Sign In]
+```
+
+**Footer columns**:
+```
+Consumer     Business         Developer
+Loop         Loop Business    Raldtics
+Messenger    PayRald          Loop Voice
+Profiles     Loop Dispatch    GitRald
+```
+
+### 15.3 Identity Clarity Test (Success Criteria)
+
+After visiting the marketing site, a new user can answer:
+
+| Question | Answer |
+|----------|--------|
+| What is RALD? | Unified African identity + social ecosystem |
+| What is Loop? | Real-time voice communities built around relationships |
+| What is Messenger? | Private relationship network with verified identities |
+| What is Profiles? | One verified identity that works across all RALD products |
+| Why should I trust it? | No ads, no biometrics, no data selling. Explicit data transparency page. |
+
+### 15.4 Trust Signals Implemented
+
+- **Loop**: Verified identity callout, Pan-African framing, "No bots" guarantee
+- **Messenger**: "0 ads in your DMs" counter, persistent conversation guarantee
+- **Profiles**: Explicit what-is-stored/what-is-NOT-stored sections, security audit log example
+
+---
+
+*WIZMAC v1.3 — Updated 2026-06-05 — LILCKY STUDIO LIMITED*
+*Sections 14 + 15 added: Hardening Sprint + Trust & Positioning Sprint*
