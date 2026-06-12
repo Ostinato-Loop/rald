@@ -648,6 +648,7 @@ auth.get("/me", authMiddleware, async (c) => {
   if (!u) return c.json({ error: "User not found" }, 404);
 
   const meta = u.metadata as Record<string, string> | null;
+  c.header("X-RALD-Identity-Portal", "https://profiles.rald.cloud");
   return c.json({
     id: u.id,
     raldId: u.rald_id,
@@ -658,6 +659,7 @@ auth.get("/me", authMiddleware, async (c) => {
     emailVerified: (u as Record<string, unknown>).email_verified ?? false,
     phoneVerified: (u as Record<string, unknown>).phone_verified ?? false,
     createdAt: u.created_at,
+    identity_portal: "https://profiles.rald.cloud",
   });
 });
 
@@ -670,6 +672,7 @@ auth.get("/sessions", authMiddleware, async (c) => {
       .eq("user_id", user.id).is("revoked_at", null)
       .gte("expires_at", new Date().toISOString())
       .order("last_seen_at", { ascending: false });
+    c.header("X-RALD-Identity-Portal", "https://profiles.rald.cloud/security");
     return c.json(data ?? []);
   } catch { return c.json([]); }
 });
