@@ -66,3 +66,59 @@ export function handleAuthRedirect(): boolean {
     return false;
   }
 }
+
+// ── Sprint 3: ONE RALD canonical-redirect helpers ────────────────────
+
+export type IdentityAction =
+  | "profile" | "username" | "security" | "sessions" | "devices"
+  | "verification" | "recovery" | "developer" | "privacy" | "country"
+  | "workspace" | "delete";
+
+const ACTION_PATHS: Record<IdentityAction, string> = {
+  profile:      "/account",
+  username:     "/account",
+  country:      "/account",
+  verification: "/account",
+  workspace:    "/account",
+  security:     "/security",
+  sessions:     "/security",
+  devices:      "/security",
+  privacy:      "/privacy",
+  delete:       "/privacy",
+  recovery:     "/login",
+  developer:    "/developer",
+};
+
+/**
+ * Navigate the user to profiles.rald.cloud for the given identity action.
+ * Uses GET /identity/canonical-redirect; falls back to ACTION_PATHS.
+ * This is the ONE RALD Sprint 3 standard: products never handle identity locally.
+ */
+export async function getIdentityPortalUrl(
+  action: IdentityAction,
+  returnTo?: string,
+): Promise<string> {
+  const params = new URLSearchParams({ action, app_id: "credentials-portal" });
+  if (returnTo) params.set("return_to", returnTo);
+  try {
+    const res = await fetch(`https://auth.rald.cloud/identity/canonical-redirect?${params}`);
+    if (!res.ok) throw new Error("non-ok");
+    const data = await res.json() as { canonical: string };
+    return data.canonical;
+  } catch {
+    const path = ACTION_PATHS[action] ?? "/account";
+    const url  = new URL(`${AUTH_URL}${path}`);
+    url.searchParams.set("app_id", "credentials-portal");
+    if (returnTo) url.searchParams.set("return_to", returnTo);
+    return url.toString();
+  }
+}
+
+/** Immediately navigate to profiles.rald.cloud for an identity action. */
+export function redirectToIdentity(action: IdentityAction, returnTo?: string): void {
+  const rt   = returnTo ?? window.location.href;
+  const path = ACTION_PATHS[action] ?? "/account";
+  const params = new URLSearchParams({ app_id: "credentials-portal", return_to: rt });
+  window.location.href = `${AUTH_URL}${path}?${params}`;
+}
+
