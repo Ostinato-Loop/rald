@@ -170,7 +170,7 @@ function BrandPanel() {
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function Home() {
-  const { user, loading, login } = useAuth();
+  const { user, token, loading, login } = useAuth();
   const [, setLocation] = useLocation();
 
   // state
@@ -204,12 +204,21 @@ export default function Home() {
   // Only *.rald.cloud URLs are accepted to prevent open-redirect attacks.
   const resolveRedirect = useCallback(() => {
     const params = new URLSearchParams(window.location.search);
-    const rd = params.get("redirect");
-    const safe = (url: string) => /^https:\/\/([\w-]+\.)*rald\.cloud(\/.*)?$/.test(url);
-    if (rd && safe(rd)) return rd;
+    const rd = params.get("redirect_to") ?? params.get("redirect");
+    const appId = params.get("app_id");
+    const safe = (u: string) => /^https:\/\/(([\w-]+)\.)*rald\.cloud(\/.*)?$/.test(u);
+    if (rd && safe(rd)) {
+      if (token) {
+        const url = new URL(rd);
+        url.searchParams.set("rald_token", token);
+        if (appId) url.searchParams.set("app_id", appId);
+        return url.toString();
+      }
+      return rd;
+    }
     if (user?.role === "admin" || user?.role === "operator") return "https://control.rald.cloud";
     return "https://rald.cloud";
-  }, [user]);
+  }, [user, token]);
 
   useEffect(() => {
     if (!loading && user) {
